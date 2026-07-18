@@ -19,6 +19,7 @@
 
 # production
 /build
+/deploy
 
 # misc
 .DS_Store
@@ -32,6 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.production.example
 
 # vercel
 .vercel
@@ -45,3 +47,10 @@ next-env.d.ts
 # database
 *.db
 *.db-journal
+
+# evidencia/firmas subidas por la app (disco local del servidor)
+/storage/
+
+# fotos de referencia reales compartidas para diseñar el modelo (no usadas
+# por la app, no se versionan por privacidad operativa)
+/fotos/

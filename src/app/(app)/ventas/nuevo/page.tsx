@@ -1,0 +1,64 @@
+import { prisma } from "@/lib/db";
+import { lotesConDisponible } from "@/lib/lote";
+import { CatalogForm } from "@/components/catalog-form";
+import { crearVenta } from "./actions";
+
+export default async function NuevaVentaPage() {
+  const [clientes, lotes] = await Promise.all([
+    prisma.cliente.findMany({ where: { activo: true }, orderBy: { nombre: "asc" } }),
+    lotesConDisponible(),
+  ]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-semibold">Nueva venta</h1>
+      {lotes.length === 0 ? (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          No hay lotes con material disponible para vender todavía.
+        </p>
+      ) : (
+        <CatalogForm
+          action={crearVenta}
+          submitLabel="Registrar venta"
+          fields={[
+            {
+              name: "clienteId",
+              label: "Cliente",
+              type: "select",
+              required: true,
+              options: clientes.map((c) => ({ value: c.id.toString(), label: c.nombre })),
+            },
+            {
+              name: "loteId",
+              label: "Lote",
+              type: "select",
+              required: true,
+              options: lotes.map((l) => ({
+                value: l.id.toString(),
+                label: `${l.folio} — ${l.ubicacion.nombre} — ${l.articulo.nombre} — disponible: ${l.disponible.toFixed(2)} kg`,
+              })),
+            },
+            {
+              name: "pesoAsignadoKg",
+              label: "Peso a vender (kg)",
+              type: "number",
+              required: true,
+              min: 0,
+              step: 0.01,
+            },
+            {
+              name: "precioUnitarioKg",
+              label: "Precio por kg",
+              type: "number",
+              required: true,
+              min: 0,
+              step: 0.01,
+            },
+            { name: "operadorNombre", label: "Operador del transporte (opcional)" },
+            { name: "placas", label: "Placas (opcional)" },
+          ]}
+        />
+      )}
+    </div>
+  );
+}
