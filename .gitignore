@@ -54,3 +54,4 @@ next-env.d.ts
 # fotos de referencia reales compartidas para diseñar el modelo (no usadas
 # por la app, no se versionan por privacidad operativa)
 /fotos/
+.gstack/

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { CatalogTable } from "@/components/catalog-table";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { toggleUsuarioActivo } from "./actions";
 
 export default async function UsuariosPage() {
@@ -16,12 +18,14 @@ export default async function UsuariosPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Usuarios</h1>
-        <Link href="/catalogos/usuarios/nuevo" className="underline">
-          Nuevo usuario
-        </Link>
-      </div>
+      <PageHeader
+        title="Usuarios"
+        action={
+          <Link href="/catalogos/usuarios/nuevo" className={buttonClass("primary", "sm")}>
+            Nuevo usuario
+          </Link>
+        }
+      />
       <CatalogTable
         rows={usuarios}
         toggleAction={toggleUsuarioActivo}

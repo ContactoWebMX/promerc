@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { CatalogTable } from "@/components/catalog-table";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { toggleUbicacionActivo } from "./actions";
 
 export default async function UbicacionesPage() {
@@ -10,12 +12,14 @@ export default async function UbicacionesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Ubicaciones</h1>
-        <Link href="/catalogos/ubicaciones/nuevo" className="underline">
-          Nueva ubicación
-        </Link>
-      </div>
+      <PageHeader
+        title="Ubicaciones"
+        action={
+          <Link href="/catalogos/ubicaciones/nuevo" className={buttonClass("primary", "sm")}>
+            Nueva ubicación
+          </Link>
+        }
+      />
       <CatalogTable
         rows={ubicaciones}
         toggleAction={toggleUbicacionActivo}

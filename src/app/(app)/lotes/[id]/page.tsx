@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { CatalogForm } from "@/components/catalog-form";
+import { Card, PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { corregirFolioLote } from "./actions";
 
 export default async function LoteDetailPage({
@@ -40,22 +42,21 @@ export default async function LoteDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Lote {lote.folio}</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {lote.ubicacion.nombre} · {lote.articulo.nombre} ·{" "}
-          {lote.fecha.toLocaleDateString("es-MX")} · Estado: {lote.estado}
-        </p>
-      </div>
+      <PageHeader title={`Lote ${lote.folio}`} />
+      <p className="-mt-4 text-sm text-muted">
+        {lote.ubicacion.nombre} · {lote.articulo.nombre} ·{" "}
+        {lote.fecha.toLocaleDateString("es-MX")} · Estado: {lote.estado}
+      </p>
 
-      <div className="text-sm">
+      <Card className="text-sm">
         <p className="font-medium">
-          Compras en este lote ({lote.compras.length}) — total {totalKg.toFixed(2)} kg
+          Compras en este lote ({lote.compras.length}) — total{" "}
+          <span className="font-semibold">{totalKg.toFixed(2)} kg</span>
         </p>
-        <ul className="list-disc pl-5">
+        <ul className="mt-2 list-disc pl-5">
           {lote.compras.map((c) => (
             <li key={c.id}>
-              <Link href={`/compras/${c.id}`} className="underline">
+              <Link href={`/compras/${c.id}`} className={buttonClass("link")}>
                 {c.pesaje.folioTicket}
               </Link>{" "}
               — {c.proveedor.nombre} — {c.pesaje.netoKg?.toString()} kg
@@ -63,7 +64,7 @@ export default async function LoteDetailPage({
           ))}
           {lote.compras.length === 0 && <li>Sin compras asignadas todavía.</li>}
         </ul>
-      </div>
+      </Card>
 
       {puedeCorregir && (
         <div className="flex flex-col gap-2">

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { CatalogTable } from "@/components/catalog-table";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { toggleClienteActivo } from "./actions";
 
 export default async function ClientesPage() {
@@ -10,12 +12,14 @@ export default async function ClientesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Clientes</h1>
-        <Link href="/catalogos/clientes/nuevo" className="underline">
-          Nuevo cliente
-        </Link>
-      </div>
+      <PageHeader
+        title="Clientes"
+        action={
+          <Link href="/catalogos/clientes/nuevo" className={buttonClass("primary", "sm")}>
+            Nuevo cliente
+          </Link>
+        }
+      />
       <CatalogTable
         rows={clientes}
         toggleAction={toggleClienteActivo}

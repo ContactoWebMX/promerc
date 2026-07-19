@@ -6,10 +6,30 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/dal";
 import { saveUpload, saveDataUrl } from "@/lib/storage";
 import { cerrarPesajeSchema, anularPesajeSchema } from "@/lib/validations/pesajes";
+import { leerTicketBascula, type TicketExtraido } from "@/lib/ocr";
 
 export type CerrarPesajeState =
   | { errors?: Record<string, string[]>; message?: string }
   | undefined;
+
+export async function leerTicketConIA(
+  formData: FormData,
+): Promise<{ datos?: TicketExtraido; error?: string }> {
+  await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
+
+  const foto = formData.get("foto");
+  if (!(foto instanceof File) || foto.size === 0) {
+    return { error: "No se recibió ninguna foto." };
+  }
+
+  try {
+    const buffer = Buffer.from(await foto.arrayBuffer());
+    const datos = await leerTicketBascula(buffer, foto.type);
+    return { datos };
+  } catch {
+    return { error: "No se pudo leer el ticket automáticamente. Llena los campos manualmente." };
+  }
+}
 
 export async function cerrarPesaje(
   _state: CerrarPesajeState,

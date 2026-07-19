@@ -2,15 +2,17 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/button";
+import { inputClass, labelClass } from "@/components/ui/field";
 import { login } from "./actions";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
 
   return (
-    <form action={action} className="flex w-full max-w-sm flex-col gap-4">
+    <form action={action} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor="email" className="text-sm font-medium">
+        <label htmlFor="email" className={labelClass}>
           Correo
         </label>
         <input
@@ -19,15 +21,15 @@ export function LoginForm() {
           type="email"
           required
           autoComplete="username"
-          className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
+          className={inputClass}
         />
         {state?.errors?.email && (
-          <p className="text-sm text-red-600">{state.errors.email[0]}</p>
+          <p className="text-sm text-danger">{state.errors.email[0]}</p>
         )}
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm font-medium">
+        <label htmlFor="password" className={labelClass}>
           Contraseña
         </label>
         <input
@@ -36,24 +38,20 @@ export function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
+          className={inputClass}
         />
         {state?.errors?.password && (
-          <p className="text-sm text-red-600">{state.errors.password[0]}</p>
+          <p className="text-sm text-danger">{state.errors.password[0]}</p>
         )}
       </div>
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state?.message && <p className="text-sm text-danger">{state.message}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-foreground px-5 py-2 text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className={buttonClass("primary")}>
         {pending ? "Entrando..." : "Entrar"}
       </button>
 
-      <Link href="/reset-password" className="text-sm text-center underline">
+      <Link href="/reset-password" className={`${buttonClass("link")} text-center`}>
         ¿Olvidaste tu contraseña?
       </Link>
     </form>

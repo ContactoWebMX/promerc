@@ -14,8 +14,11 @@ export function SignaturePad({
   const drawing = useRef(false);
 
   function pos(e: React.PointerEvent<HTMLCanvasElement>) {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
   }
 
   function start(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -55,7 +58,7 @@ export function SignaturePad({
         ref={canvasRef}
         width={320}
         height={140}
-        className="touch-none rounded-md border border-black/15 bg-white dark:border-white/20"
+        className="w-full max-w-sm touch-none rounded-md border border-border bg-white"
         onPointerDown={start}
         onPointerMove={move}
         onPointerUp={end}
@@ -65,7 +68,7 @@ export function SignaturePad({
       <button
         type="button"
         onClick={clear}
-        className="self-start text-xs underline"
+        className="self-start text-xs text-primary hover:underline"
       >
         Limpiar firma
       </button>

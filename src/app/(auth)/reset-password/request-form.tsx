@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/button";
+import { inputClass, labelClass } from "@/components/ui/field";
 import { requestPasswordReset } from "./actions";
 
 export function RequestResetForm() {
@@ -11,34 +13,24 @@ export function RequestResetForm() {
   );
 
   return (
-    <form action={action} className="flex w-full max-w-sm flex-col gap-4">
+    <form action={action} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor="email" className="text-sm font-medium">
+        <label htmlFor="email" className={labelClass}>
           Correo
         </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
-        />
+        <input id="email" name="email" type="email" required className={inputClass} />
         {state?.errors?.email && (
-          <p className="text-sm text-red-600">{state.errors.email[0]}</p>
+          <p className="text-sm text-danger">{state.errors.email[0]}</p>
         )}
       </div>
 
-      {state?.message && <p className="text-sm">{state.message}</p>}
+      {state?.message && <p className="text-sm text-muted">{state.message}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-foreground px-5 py-2 text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className={buttonClass("primary")}>
         {pending ? "Enviando..." : "Enviar enlace de recuperación"}
       </button>
 
-      <Link href="/login" className="text-sm text-center underline">
+      <Link href="/login" className={`${buttonClass("link")} text-center`}>
         Volver al login
       </Link>
     </form>

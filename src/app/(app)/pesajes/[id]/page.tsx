@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { Card, PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
+import { inputClass, labelClass } from "@/components/ui/field";
 import { CerrarPesajeForm } from "./cerrar-pesaje-form";
 import { anularPesaje } from "./actions";
 
@@ -46,45 +49,51 @@ export default async function PesajeDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Pesaje — folio {pesaje.folioTicket}</h1>
-        <span className="text-sm">{ESTADO_LABELS[pesaje.estado] ?? pesaje.estado}</span>
-      </div>
+      <PageHeader
+        title={`Pesaje — folio ${pesaje.folioTicket}`}
+        action={
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            {ESTADO_LABELS[pesaje.estado] ?? pesaje.estado}
+          </span>
+        }
+      />
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm max-w-md">
-        <dt className="text-zinc-500">Ubicación</dt>
-        <dd>{pesaje.ubicacion.nombre}</dd>
-        <dt className="text-zinc-500">Proveedor</dt>
-        <dd>{pesaje.proveedor.nombre}</dd>
-        <dt className="text-zinc-500">Artículo</dt>
-        <dd>{pesaje.articulo.nombre}</dd>
-        <dt className="text-zinc-500">Operador / placas</dt>
-        <dd>
-          {pesaje.operadorNombre} · {pesaje.placas}
-        </dd>
-        <dt className="text-zinc-500">Tara</dt>
-        <dd>{pesaje.taraKg.toString()} kg</dd>
-        {pesaje.estado !== "TARA_CAPTURADA" && (
-          <>
-            <dt className="text-zinc-500">Peso cargado</dt>
-            <dd>{pesaje.grossKg?.toString() ?? "—"} kg</dd>
-            <dt className="text-zinc-500">Neto</dt>
-            <dd>{pesaje.netoKg?.toString() ?? "—"} kg</dd>
-            <dt className="text-zinc-500">Pesador</dt>
-            <dd>{pesaje.pesadorNombre ?? "—"}</dd>
-            <dt className="text-zinc-500">Cliente destino</dt>
-            <dd>{pesaje.clienteDestinoReferencia ?? "—"}</dd>
-            <dt className="text-zinc-500">Observaciones</dt>
-            <dd>{pesaje.observaciones ?? "—"}</dd>
-          </>
-        )}
-        {pesaje.estado === "ANULADO" && (
-          <>
-            <dt className="text-zinc-500">Motivo de anulación</dt>
-            <dd>{pesaje.motivoAnulacion}</dd>
-          </>
-        )}
-      </dl>
+      <Card>
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <dt className="text-muted">Ubicación</dt>
+          <dd>{pesaje.ubicacion.nombre}</dd>
+          <dt className="text-muted">Proveedor</dt>
+          <dd>{pesaje.proveedor.nombre}</dd>
+          <dt className="text-muted">Artículo</dt>
+          <dd>{pesaje.articulo.nombre}</dd>
+          <dt className="text-muted">Operador / placas</dt>
+          <dd>
+            {pesaje.operadorNombre} · {pesaje.placas}
+          </dd>
+          <dt className="text-muted">Tara</dt>
+          <dd>{pesaje.taraKg.toString()} kg</dd>
+          {pesaje.estado !== "TARA_CAPTURADA" && (
+            <>
+              <dt className="text-muted">Peso cargado</dt>
+              <dd>{pesaje.grossKg?.toString() ?? "—"} kg</dd>
+              <dt className="text-muted">Neto</dt>
+              <dd className="font-semibold">{pesaje.netoKg?.toString() ?? "—"} kg</dd>
+              <dt className="text-muted">Pesador</dt>
+              <dd>{pesaje.pesadorNombre ?? "—"}</dd>
+              <dt className="text-muted">Cliente destino</dt>
+              <dd>{pesaje.clienteDestinoReferencia ?? "—"}</dd>
+              <dt className="text-muted">Observaciones</dt>
+              <dd>{pesaje.observaciones ?? "—"}</dd>
+            </>
+          )}
+          {pesaje.estado === "ANULADO" && (
+            <>
+              <dt className="text-muted">Motivo de anulación</dt>
+              <dd>{pesaje.motivoAnulacion}</dd>
+            </>
+          )}
+        </dl>
+      </Card>
 
       {pesaje.empaqueConteos.length > 0 && (
         <div className="text-sm">
@@ -105,7 +114,11 @@ export default async function PesajeDetailPage({
           <ul className="list-disc pl-5">
             {pesaje.evidencias.map((e) => (
               <li key={e.id}>
-                <a href={`/api/evidencia/${e.id}`} className="underline" target="_blank">
+                <a
+                  href={`/api/evidencia/${e.id}`}
+                  className={buttonClass("link")}
+                  target="_blank"
+                >
                   Foto del ticket
                 </a>
               </li>
@@ -121,7 +134,11 @@ export default async function PesajeDetailPage({
             {pesaje.firmas.map((f) => (
               <li key={f.id}>
                 {TIPO_FIRMA_LABELS[f.tipo] ?? f.tipo} — {f.nombreFirmante}{" "}
-                <a href={`/api/firmas/${f.id}`} className="underline" target="_blank">
+                <a
+                  href={`/api/firmas/${f.id}`}
+                  className={buttonClass("link")}
+                  target="_blank"
+                >
                   ver
                 </a>
               </li>
@@ -131,13 +148,13 @@ export default async function PesajeDetailPage({
       )}
 
       {pesaje.estado === "COMPLETO" && (
-        <div className="text-sm">
+        <div>
           {pesaje.compra ? (
-            <Link href={`/compras/${pesaje.compra.id}`} className="underline">
+            <Link href={`/compras/${pesaje.compra.id}`} className={buttonClass("secondary")}>
               Ver compra registrada
             </Link>
           ) : (
-            <Link href={`/compras/nuevo/${pesaje.id}`} className="underline">
+            <Link href={`/compras/nuevo/${pesaje.id}`} className={buttonClass("primary")}>
               Registrar compra
             </Link>
           )}
@@ -154,16 +171,16 @@ export default async function PesajeDetailPage({
 
           <form action={anularPesaje} className="flex max-w-sm flex-col gap-2">
             <input type="hidden" name="id" value={pesaje.id} />
-            <label htmlFor="motivoAnulacion" className="text-sm font-medium">
+            <label htmlFor="motivoAnulacion" className={labelClass}>
               Anular este pesaje (opcional)
             </label>
             <input
               id="motivoAnulacion"
               name="motivoAnulacion"
               placeholder="Motivo"
-              className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
+              className={inputClass}
             />
-            <button type="submit" className="self-start text-sm text-red-600 underline">
+            <button type="submit" className={buttonClass("danger", "sm")}>
               Anular pesaje
             </button>
           </form>

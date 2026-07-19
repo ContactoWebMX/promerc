@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { CatalogTable } from "@/components/catalog-table";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { toggleProveedorActivo } from "./actions";
 
 export default async function ProveedoresPage() {
@@ -10,12 +12,14 @@ export default async function ProveedoresPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Proveedores</h1>
-        <Link href="/catalogos/proveedores/nuevo" className="underline">
-          Nuevo proveedor
-        </Link>
-      </div>
+      <PageHeader
+        title="Proveedores"
+        action={
+          <Link href="/catalogos/proveedores/nuevo" className={buttonClass("primary", "sm")}>
+            Nuevo proveedor
+          </Link>
+        }
+      />
       <CatalogTable
         rows={proveedores}
         toggleAction={toggleProveedorActivo}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Card, PageHeader } from "@/components/ui/card";
 
 const catalogos = [
   { href: "/catalogos/ubicaciones", label: "Ubicaciones" },
@@ -12,16 +13,16 @@ const catalogos = [
 export default function CatalogosPage() {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Catálogos</h1>
-      <ul className="flex flex-col gap-2">
+      <PageHeader title="Catálogos" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {catalogos.map((c) => (
-          <li key={c.href}>
-            <Link href={c.href} className="underline">
-              {c.label}
-            </Link>
-          </li>
+          <Link key={c.href} href={c.href}>
+            <Card className="transition-colors hover:border-primary">
+              <span className="font-medium">{c.label}</span>
+            </Card>
+          </Link>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

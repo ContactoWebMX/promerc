@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
+import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
 
 const ESTADO_LABELS: Record<string, string> = {
   TARA_CAPTURADA: "Pendiente de cierre",
@@ -22,37 +25,39 @@ export default async function PesajesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Pesajes</h1>
-        <Link href="/pesajes/nuevo" className="underline">
-          Nuevo pesaje
-        </Link>
-      </div>
-      <table className="w-full text-sm">
+      <PageHeader
+        title="Pesajes"
+        action={
+          <Link href="/pesajes/nuevo" className={buttonClass("primary", "sm")}>
+            Nuevo pesaje
+          </Link>
+        }
+      />
+      <TableWrapper>
         <thead>
-          <tr className="border-b border-black/10 text-left dark:border-white/10">
-            <th className="py-2 pr-4 font-medium">Folio ticket</th>
-            <th className="py-2 pr-4 font-medium">Ubicación</th>
-            <th className="py-2 pr-4 font-medium">Proveedor</th>
-            <th className="py-2 pr-4 font-medium">Artículo</th>
-            <th className="py-2 pr-4 font-medium">Tara (kg)</th>
-            <th className="py-2 pr-4 font-medium">Neto (kg)</th>
-            <th className="py-2 pr-4 font-medium">Estado</th>
-            <th className="py-2" />
+          <tr>
+            <th className={thClass}>Folio ticket</th>
+            <th className={thClass}>Ubicación</th>
+            <th className={thClass}>Proveedor</th>
+            <th className={thClass}>Artículo</th>
+            <th className={thClass}>Tara (kg)</th>
+            <th className={thClass}>Neto (kg)</th>
+            <th className={thClass}>Estado</th>
+            <th className={thClass} />
           </tr>
         </thead>
         <tbody>
           {pesajes.map((p) => (
-            <tr key={p.id} className="border-b border-black/5 dark:border-white/5">
-              <td className="py-2 pr-4">{p.folioTicket}</td>
-              <td className="py-2 pr-4">{p.ubicacion.nombre}</td>
-              <td className="py-2 pr-4">{p.proveedor.nombre}</td>
-              <td className="py-2 pr-4">{p.articulo.nombre}</td>
-              <td className="py-2 pr-4">{p.taraKg.toString()}</td>
-              <td className="py-2 pr-4">{p.netoKg?.toString() ?? "—"}</td>
-              <td className="py-2 pr-4">{ESTADO_LABELS[p.estado] ?? p.estado}</td>
-              <td className="py-2">
-                <Link href={`/pesajes/${p.id}`} className="underline">
+            <tr key={p.id} className={trClass}>
+              <td className={tdClass}>{p.folioTicket}</td>
+              <td className={tdClass}>{p.ubicacion.nombre}</td>
+              <td className={tdClass}>{p.proveedor.nombre}</td>
+              <td className={tdClass}>{p.articulo.nombre}</td>
+              <td className={tdClass}>{p.taraKg.toString()}</td>
+              <td className={tdClass}>{p.netoKg?.toString() ?? "—"}</td>
+              <td className={tdClass}>{ESTADO_LABELS[p.estado] ?? p.estado}</td>
+              <td className={tdClass}>
+                <Link href={`/pesajes/${p.id}`} className={buttonClass("link")}>
                   Ver
                 </Link>
               </td>
@@ -60,13 +65,13 @@ export default async function PesajesPage() {
           ))}
           {pesajes.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-6 text-center text-zinc-500">
+              <td colSpan={8} className={`${tdClass} text-center text-muted`}>
                 Sin pesajes todavía.
               </td>
             </tr>
           )}
         </tbody>
-      </table>
+      </TableWrapper>
     </div>
   );
 }

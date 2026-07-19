@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
+import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
 
 const ESTADO_LABELS: Record<string, string> = {
   BORRADOR: "Falta reportar peso",
@@ -22,33 +25,43 @@ export default async function VentasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Ventas</h1>
-        <Link href="/ventas/nuevo" className="underline">
-          Nueva venta
-        </Link>
-      </div>
-      <table className="w-full text-sm">
+      <PageHeader
+        title="Ventas"
+        action={
+          <Link href="/ventas/nuevo" className={buttonClass("primary", "sm")}>
+            Nueva venta
+          </Link>
+        }
+      />
+      <TableWrapper>
         <thead>
-          <tr className="border-b border-black/10 text-left dark:border-white/10">
-            <th className="py-2 pr-4 font-medium">Cliente</th>
-            <th className="py-2 pr-4 font-medium">Artículo</th>
-            <th className="py-2 pr-4 font-medium">Vendido (kg)</th>
-            <th className="py-2 pr-4 font-medium">Importe</th>
-            <th className="py-2 pr-4 font-medium">Estado</th>
-            <th className="py-2" />
+          <tr>
+            <th className={thClass}>Cliente</th>
+            <th className={thClass}>Artículo</th>
+            <th className={thClass}>Vendido (kg)</th>
+            <th className={thClass}>Importe</th>
+            <th className={thClass}>Estado</th>
+            <th className={thClass} />
           </tr>
         </thead>
         <tbody>
           {ventas.map((v) => (
-            <tr key={v.id} className="border-b border-black/5 dark:border-white/5">
-              <td className="py-2 pr-4">{v.cliente.nombre}</td>
-              <td className="py-2 pr-4">{v.articulo.nombre}</td>
-              <td className="py-2 pr-4">{v.pesoVendidoKg.toString()}</td>
-              <td className="py-2 pr-4">{v.importeTotal.toString()}</td>
-              <td className="py-2 pr-4">{ESTADO_LABELS[v.estado] ?? v.estado}</td>
-              <td className="py-2">
-                <Link href={`/ventas/${v.id}`} className="underline">
+            <tr key={v.id} className={trClass}>
+              <td className={tdClass}>{v.cliente.nombre}</td>
+              <td className={tdClass}>{v.articulo.nombre}</td>
+              <td className={tdClass}>{v.pesoVendidoKg.toString()}</td>
+              <td className={tdClass}>{v.importeTotal.toString()}</td>
+              <td className={tdClass}>
+                {v.estado === "PENDIENTE_APROBACION" ? (
+                  <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
+                    {ESTADO_LABELS[v.estado]}
+                  </span>
+                ) : (
+                  ESTADO_LABELS[v.estado] ?? v.estado
+                )}
+              </td>
+              <td className={tdClass}>
+                <Link href={`/ventas/${v.id}`} className={buttonClass("link")}>
                   Ver
                 </Link>
               </td>
@@ -56,13 +69,13 @@ export default async function VentasPage() {
           ))}
           {ventas.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-6 text-center text-zinc-500">
+              <td colSpan={6} className={`${tdClass} text-center text-muted`}>
                 Sin ventas todavía.
               </td>
             </tr>
           )}
         </tbody>
-      </table>
+      </TableWrapper>
     </div>
   );
 }

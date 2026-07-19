@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { CatalogTable } from "@/components/catalog-table";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
 import { toggleUnidadEmpaqueActivo } from "./actions";
 
 export default async function UnidadesEmpaquePage() {
@@ -10,12 +12,14 @@ export default async function UnidadesEmpaquePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Unidades de empaque</h1>
-        <Link href="/catalogos/unidades-empaque/nuevo" className="underline">
-          Nueva unidad
-        </Link>
-      </div>
+      <PageHeader
+        title="Unidades de empaque"
+        action={
+          <Link href="/catalogos/unidades-empaque/nuevo" className={buttonClass("primary", "sm")}>
+            Nueva unidad
+          </Link>
+        }
+      />
       <CatalogTable
         rows={unidades}
         toggleAction={toggleUnidadEmpaqueActivo}

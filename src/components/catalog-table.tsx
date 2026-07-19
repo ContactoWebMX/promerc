@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { buttonClass } from "@/components/ui/button";
+
 type Column<T> = { header: string; cell: (row: T) => React.ReactNode };
 
 export function CatalogTable<T extends { id: number; activo: boolean }>({
@@ -12,32 +16,42 @@ export function CatalogTable<T extends { id: number; activo: boolean }>({
   editBasePath: string;
 }) {
   return (
-    <table className="w-full text-sm">
+    <TableWrapper>
       <thead>
-        <tr className="border-b border-black/10 text-left dark:border-white/10">
+        <tr>
           {columns.map((c) => (
-            <th key={c.header} className="py-2 pr-4 font-medium">
+            <th key={c.header} className={thClass}>
               {c.header}
             </th>
           ))}
-          <th className="py-2 pr-4 font-medium">Estado</th>
-          <th className="py-2" />
+          <th className={thClass}>Estado</th>
+          <th className={thClass} />
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id} className="border-b border-black/5 dark:border-white/5">
+          <tr key={row.id} className={trClass}>
             {columns.map((c) => (
-              <td key={c.header} className="py-2 pr-4">
+              <td key={c.header} className={tdClass}>
                 {c.cell(row)}
               </td>
             ))}
-            <td className="py-2 pr-4">{row.activo ? "Activo" : "Inactivo"}</td>
-            <td className="py-2">
-              <div className="flex items-center gap-3">
-                <a href={`${editBasePath}/${row.id}`} className="underline">
+            <td className={tdClass}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  row.activo
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted/15 text-muted"
+                }`}
+              >
+                {row.activo ? "Activo" : "Inactivo"}
+              </span>
+            </td>
+            <td className={tdClass}>
+              <div className="flex items-center gap-4">
+                <Link href={`${editBasePath}/${row.id}`} className={buttonClass("link")}>
                   Editar
-                </a>
+                </Link>
                 <form action={toggleAction}>
                   <input type="hidden" name="id" value={row.id} />
                   <input
@@ -45,7 +59,7 @@ export function CatalogTable<T extends { id: number; activo: boolean }>({
                     name="activo"
                     value={(!row.activo).toString()}
                   />
-                  <button type="submit" className="underline">
+                  <button type="submit" className={buttonClass("link")}>
                     {row.activo ? "Desactivar" : "Activar"}
                   </button>
                 </form>
@@ -55,15 +69,12 @@ export function CatalogTable<T extends { id: number; activo: boolean }>({
         ))}
         {rows.length === 0 && (
           <tr>
-            <td
-              colSpan={columns.length + 2}
-              className="py-6 text-center text-zinc-500"
-            >
+            <td colSpan={columns.length + 2} className={`${tdClass} text-center text-muted`}>
               Sin registros todavía.
             </td>
           </tr>
         )}
       </tbody>
-    </table>
+    </TableWrapper>
   );
 }

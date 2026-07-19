@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { lotesConDisponible } from "@/lib/lote";
 import { CatalogForm } from "@/components/catalog-form";
+import { PageHeader } from "@/components/ui/card";
 import { crearVenta } from "./actions";
 
 export default async function NuevaVentaPage() {
@@ -11,9 +12,9 @@ export default async function NuevaVentaPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Nueva venta</h1>
+      <PageHeader title="Nueva venta" />
       {lotes.length === 0 ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-muted">
           No hay lotes con material disponible para vender todavía.
         </p>
       ) : (

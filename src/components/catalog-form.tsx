@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+import { buttonClass } from "@/components/ui/button";
+import { inputClass, labelClass } from "@/components/ui/field";
 
 type Option = { value: string; label: string };
 
@@ -51,7 +53,7 @@ export function CatalogForm({
         ))}
       {fields.map((f) => (
         <div key={f.name} className="flex flex-col gap-1">
-          <label htmlFor={f.name} className="text-sm font-medium">
+          <label htmlFor={f.name} className={labelClass}>
             {f.label}
           </label>
           {f.type === "select" ? (
@@ -60,7 +62,7 @@ export function CatalogForm({
               name={f.name}
               required={f.required}
               defaultValue={defaultValues?.[f.name] ?? ""}
-              className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
+              className={inputClass}
             >
               <option value="">—</option>
               {f.options?.map((o) => (
@@ -80,7 +82,7 @@ export function CatalogForm({
                 step={f.step}
                 list={f.datalist ? `${f.name}-list` : undefined}
                 defaultValue={defaultValues?.[f.name]}
-                className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-black"
+                className={inputClass}
               />
               {f.datalist && (
                 <datalist id={`${f.name}-list`}>
@@ -91,22 +93,16 @@ export function CatalogForm({
               )}
             </>
           )}
-          {f.helpText && (
-            <p className="text-xs text-zinc-500">{f.helpText}</p>
-          )}
+          {f.helpText && <p className="text-xs text-muted">{f.helpText}</p>}
           {state?.errors?.[f.name] && (
-            <p className="text-sm text-red-600">{state.errors[f.name][0]}</p>
+            <p className="text-sm text-danger">{state.errors[f.name][0]}</p>
           )}
         </div>
       ))}
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state?.message && <p className="text-sm text-danger">{state.message}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-foreground px-5 py-2 text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className={buttonClass("primary")}>
         {pending ? "Guardando..." : submitLabel}
       </button>
     </form>

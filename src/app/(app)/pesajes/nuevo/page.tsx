@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { CatalogForm } from "@/components/catalog-form";
+import { PageHeader } from "@/components/ui/card";
 import { crearPesaje } from "./actions";
 
 export default async function NuevoPesajePage() {
@@ -15,8 +16,8 @@ export default async function NuevoPesajePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Nuevo pesaje — captura de tara</h1>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <PageHeader title="Nuevo pesaje — captura de tara" />
+      <p className="-mt-3 text-sm text-muted">
         Regístralo cuando el camión pase vacío por la báscula. El peso cargado
         se captura después, al cerrar el pesaje.
       </p>

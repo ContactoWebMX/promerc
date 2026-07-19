@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { CatalogForm } from "@/components/catalog-form";
+import { PageHeader } from "@/components/ui/card";
 import { crearCompra } from "./actions";
 
 export default async function NuevaCompraPage({
@@ -19,8 +20,8 @@ export default async function NuevaCompraPage({
   if (pesaje.estado !== "COMPLETO" || pesaje.compra) {
     return (
       <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">No se puede registrar la compra</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <PageHeader title="No se puede registrar la compra" />
+        <p className="text-sm text-muted">
           {pesaje.compra
             ? "Este pesaje ya tiene una compra registrada."
             : "El pesaje debe estar completo (con neto capturado) primero."}
@@ -31,10 +32,8 @@ export default async function NuevaCompraPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">
-        Registrar compra — ticket {pesaje.folioTicket}
-      </h1>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <PageHeader title={`Registrar compra — ticket ${pesaje.folioTicket}`} />
+      <p className="-mt-3 text-sm text-muted">
         {pesaje.proveedor.nombre} · {pesaje.articulo.nombre} · Neto:{" "}
         {pesaje.netoKg?.toString()} kg
       </p>

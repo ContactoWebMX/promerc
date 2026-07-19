@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/ui/card";
+import { buttonClass } from "@/components/ui/button";
+import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
 
 export default async function ComprasPage() {
   const usuario = await getCurrentUser();
@@ -15,45 +18,47 @@ export default async function ComprasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Compras</h1>
-        <Link href="/pesajes" className="underline text-sm">
-          Ver pesajes completos para registrar una compra
-        </Link>
-      </div>
-      <table className="w-full text-sm">
+      <PageHeader
+        title="Compras"
+        action={
+          <Link href="/pesajes" className={buttonClass("secondary", "sm")}>
+            Ver pesajes completos para registrar una compra
+          </Link>
+        }
+      />
+      <TableWrapper>
         <thead>
-          <tr className="border-b border-black/10 text-left dark:border-white/10">
-            <th className="py-2 pr-4 font-medium">Folio ticket</th>
-            <th className="py-2 pr-4 font-medium">Proveedor</th>
-            <th className="py-2 pr-4 font-medium">Neto (kg)</th>
-            <th className="py-2 pr-4 font-medium">Precio/kg</th>
-            <th className="py-2 pr-4 font-medium">Importe</th>
-            <th className="py-2 pr-4 font-medium">Lote</th>
-            <th className="py-2 pr-4 font-medium">Estado</th>
-            <th className="py-2" />
+          <tr>
+            <th className={thClass}>Folio ticket</th>
+            <th className={thClass}>Proveedor</th>
+            <th className={thClass}>Neto (kg)</th>
+            <th className={thClass}>Precio/kg</th>
+            <th className={thClass}>Importe</th>
+            <th className={thClass}>Lote</th>
+            <th className={thClass}>Estado</th>
+            <th className={thClass} />
           </tr>
         </thead>
         <tbody>
           {compras.map((c) => (
-            <tr key={c.id} className="border-b border-black/5 dark:border-white/5">
-              <td className="py-2 pr-4">{c.pesaje.folioTicket}</td>
-              <td className="py-2 pr-4">{c.proveedor.nombre}</td>
-              <td className="py-2 pr-4">{c.pesaje.netoKg?.toString() ?? "—"}</td>
-              <td className="py-2 pr-4">{c.precioUnitarioKg.toString()}</td>
-              <td className="py-2 pr-4">{c.importeTotal.toString()}</td>
-              <td className="py-2 pr-4">
+            <tr key={c.id} className={trClass}>
+              <td className={tdClass}>{c.pesaje.folioTicket}</td>
+              <td className={tdClass}>{c.proveedor.nombre}</td>
+              <td className={tdClass}>{c.pesaje.netoKg?.toString() ?? "—"}</td>
+              <td className={tdClass}>{c.precioUnitarioKg.toString()}</td>
+              <td className={tdClass}>{c.importeTotal.toString()}</td>
+              <td className={tdClass}>
                 {c.lote ? (
-                  <Link href={`/lotes/${c.lote.id}`} className="underline">
+                  <Link href={`/lotes/${c.lote.id}`} className={buttonClass("link")}>
                     {c.lote.folio}
                   </Link>
                 ) : (
                   "—"
                 )}
               </td>
-              <td className="py-2 pr-4">{c.estado}</td>
-              <td className="py-2">
-                <Link href={`/compras/${c.id}`} className="underline">
+              <td className={tdClass}>{c.estado}</td>
+              <td className={tdClass}>
+                <Link href={`/compras/${c.id}`} className={buttonClass("link")}>
                   Ver
                 </Link>
               </td>
@@ -61,13 +66,13 @@ export default async function ComprasPage() {
           ))}
           {compras.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-6 text-center text-zinc-500">
+              <td colSpan={8} className={`${tdClass} text-center text-muted`}>
                 Sin compras todavía.
               </td>
             </tr>
           )}
         </tbody>
-      </table>
+      </TableWrapper>
     </div>
   );
 }
