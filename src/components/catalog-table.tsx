@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
 import { buttonClass } from "@/components/ui/button";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 
 type Column<T> = { header: string; cell: (row: T) => React.ReactNode };
 
@@ -59,9 +60,18 @@ export function CatalogTable<T extends { id: number; activo: boolean }>({
                     name="activo"
                     value={(!row.activo).toString()}
                   />
-                  <button type="submit" className={buttonClass("link")}>
-                    {row.activo ? "Desactivar" : "Activar"}
-                  </button>
+                  {row.activo ? (
+                    <ConfirmSubmitButton
+                      confirmMessage="¿Desactivar este registro?"
+                      className={buttonClass("link")}
+                    >
+                      Desactivar
+                    </ConfirmSubmitButton>
+                  ) : (
+                    <button type="submit" className={buttonClass("link")}>
+                      Activar
+                    </button>
+                  )}
                 </form>
               </div>
             </td>

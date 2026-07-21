@@ -223,8 +223,12 @@ export function CerrarPesajeForm({
 
         {state?.message && <p className="text-sm text-danger">{state.message}</p>}
 
-        <button type="submit" disabled={pending} className={buttonClass("primary")}>
-          {pending ? "Guardando..." : "Cerrar pesaje"}
+        <button
+          type="submit"
+          disabled={pending || ocrStatus === "leyendo"}
+          className={buttonClass("primary")}
+        >
+          {pending ? "Guardando..." : ocrStatus === "leyendo" ? "Leyendo ticket..." : "Cerrar pesaje"}
         </button>
       </form>
     </Card>

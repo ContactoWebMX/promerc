@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { CerrarPesajeForm } from "./cerrar-pesaje-form";
 import { anularPesaje } from "./actions";
 
@@ -180,9 +181,12 @@ export default async function PesajeDetailPage({
               placeholder="Motivo"
               className={inputClass}
             />
-            <button type="submit" className={buttonClass("danger", "sm")}>
+            <ConfirmSubmitButton
+              confirmMessage="¿Anular este pesaje? Esta acción no se puede deshacer."
+              className={buttonClass("danger", "sm")}
+            >
               Anular pesaje
-            </button>
+            </ConfirmSubmitButton>
           </form>
         </>
       )}
