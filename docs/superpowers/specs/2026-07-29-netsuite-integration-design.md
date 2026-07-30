@@ -29,11 +29,18 @@ correspondiente a una Venta, sin captura manual duplicada en NetSuite.
 
 ## Autenticación con NetSuite
 
-OAuth2 client-credentials (machine-to-machine, sin token de usuario), contra
-el REST Record API de NetSuite. Se descarta SuiteScript/RESTlet (obliga a
-mantener código también dentro de NetSuite) y SOAP/SuiteTalk clásico (legado,
-más pesado) — el REST Record API cubre la creación de `purchaseorder` y
-`salesorder` con llamadas HTTP simples.
+**Token-Based Authentication (TBA)**, no OAuth2 client-credentials. El
+Client Credentials Grant de OAuth2 en NetSuite exige generar un par de
+llaves RSA, subir el certificado a un Integration record y firmar un JWT
+(RS256) por cada solicitud de token — aparato innecesario para este caso.
+TBA es el método que NetSuite documenta para integraciones servidor-a-
+servidor contra el REST Record API: un Access Token (Consumer Key/Secret +
+Token ID/Secret) generado una vez desde Setup → Users/Roles → Access
+Tokens, ligado a un usuario/rol de integración. Cada request lleva un
+header `Authorization: OAuth ...` firmado con HMAC-SHA256 (esquema
+OAuth 1.0a) — sin llamada previa a un endpoint de token, sin expiración que
+gestionar. Se descarta también SuiteScript/RESTlet (obliga a mantener
+código dentro de NetSuite) y SOAP/SuiteTalk clásico (legado, más pesado).
 
 Variables de entorno nuevas (mismo patrón que `ANTHROPIC_API_KEY` y las
 `SMTP_*` en `src/lib/email.ts` — secretos de terceros solo en `.env` del
@@ -41,8 +48,10 @@ servidor, nunca en base de datos ni en una pantalla editable):
 
 ```
 NETSUITE_ACCOUNT_ID=
-NETSUITE_CLIENT_ID=
-NETSUITE_CLIENT_SECRET=
+NETSUITE_CONSUMER_KEY=
+NETSUITE_CONSUMER_SECRET=
+NETSUITE_TOKEN_ID=
+NETSUITE_TOKEN_SECRET=
 NETSUITE_SUBSIDIARY_ID=14   # PRO MERC PUEBLA
 ```
 
@@ -52,11 +61,11 @@ qué falta configurar — mismo criterio que `ocr.ts` cuando falta
 
 ## Capa de API — `src/lib/netsuite.ts`
 
-- `obtenerAccessToken()`: `POST` a
-  `https://{account}.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`
-  con client-credentials. Se pide un token nuevo en cada llamada — no se
-  cachea; el volumen (clicks manuales, no automatizados) no justifica la
-  complejidad de un cache con expiración.
+- `firmarSolicitudTBA(method, url)`: construye el header `Authorization:
+  OAuth ...` firmando el base string (método + URL + parámetros OAuth
+  ordenados) con HMAC-SHA256 vía el módulo `crypto` nativo de Node — sin
+  dependencia nueva. Se firma en cada llamada; no hay token que cachear ni
+  refrescar.
 - `crearOrdenCompra(compra)`: arma el JSON de `purchaseorder` y hace `POST` a
   `/services/rest/record/v1/purchaseorder` con `fetch` nativo (Node 22, sin
   dependencia nueva).
