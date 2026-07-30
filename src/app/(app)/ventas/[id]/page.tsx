@@ -107,7 +107,14 @@ export default async function VentaDetailPage({
           <dt className="text-muted">NetSuite</dt>
           <dd>
             {venta.netsuiteOrderId ? (
-              <EstadoBadge label={`Enviada — ${venta.netsuiteOrderNumber}`} tone="positive" />
+              <EstadoBadge
+                label={
+                  venta.netsuiteOrderNumber
+                    ? `Enviada — ${venta.netsuiteOrderNumber}`
+                    : "Enviada (folio pendiente de confirmar)"
+                }
+                tone="positive"
+              />
             ) : (
               "—"
             )}

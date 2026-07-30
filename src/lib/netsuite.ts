@@ -65,7 +65,7 @@ function firmarSolicitudTBA(method: string, url: string): string {
 async function postRecord(
   recordType: "purchaseorder" | "salesorder",
   body: Record<string, unknown>,
-): Promise<{ id: string; tranId: string }> {
+): Promise<{ id: string; tranId: string | null }> {
   const accountId = requerido("NETSUITE_ACCOUNT_ID");
   const createUrl = `https://${accountId}.suitetalk.api.netsuite.com/services/rest/record/v1/${recordType}`;
 
@@ -88,18 +88,27 @@ async function postRecord(
   if (!location) {
     throw new Error("NetSuite no devolvió la ubicación de la orden creada.");
   }
-
-  const getResponse = await fetch(location, {
-    headers: { Authorization: firmarSolicitudTBA("GET", location) },
-  });
-  if (!getResponse.ok) {
-    throw new Error(
-      `No se pudo leer la orden recién creada en NetSuite (${getResponse.status}).`,
-    );
+  const id = location.split("/").pop();
+  if (!id) {
+    throw new Error("NetSuite no devolvió un ID válido para la orden creada.");
   }
 
-  const record = (await getResponse.json()) as { id: string; tranId: string };
-  return { id: record.id, tranId: record.tranId };
+  // La orden ya existe en NetSuite en este punto (el POST tuvo éxito) — si
+  // la lectura de confirmación falla, no se debe perder el id: lanzar aquí
+  // dejaría la orden creada en NetSuite sin registro en PROMERC, y un
+  // reintento del usuario crearía una segunda orden duplicada.
+  try {
+    const getResponse = await fetch(location, {
+      headers: { Authorization: firmarSolicitudTBA("GET", location) },
+    });
+    if (!getResponse.ok) {
+      return { id, tranId: null };
+    }
+    const record = (await getResponse.json()) as { tranId: string };
+    return { id, tranId: record.tranId ?? null };
+  } catch {
+    return { id, tranId: null };
+  }
 }
 
 export function construirPayloadOrdenCompra(input: {
@@ -108,10 +117,12 @@ export function construirPayloadOrdenCompra(input: {
   netoKg: number;
   precioUnitarioKg: number;
   subsidiaryId: string;
+  tranDate: string;
 }) {
   return {
     entity: { id: input.netsuiteVendorId },
     subsidiary: { id: input.subsidiaryId },
+    tranDate: input.tranDate,
     item: {
       items: [
         { item: { id: input.netsuiteItemId }, quantity: input.netoKg, rate: input.precioUnitarioKg },
@@ -126,10 +137,12 @@ export function construirPayloadOrdenVenta(input: {
   pesoKg: number;
   precioUnitarioKg: number;
   subsidiaryId: string;
+  tranDate: string;
 }) {
   return {
     entity: { id: input.netsuiteCustomerId },
     subsidiary: { id: input.subsidiaryId },
+    tranDate: input.tranDate,
     item: {
       items: [
         { item: { id: input.netsuiteItemId }, quantity: input.pesoKg, rate: input.precioUnitarioKg },
@@ -143,7 +156,8 @@ export async function crearOrdenCompra(input: {
   netsuiteItemId: string;
   netoKg: number;
   precioUnitarioKg: number;
-}): Promise<{ id: string; tranId: string }> {
+  tranDate: string;
+}): Promise<{ id: string; tranId: string | null }> {
   const subsidiaryId = requerido("NETSUITE_SUBSIDIARY_ID");
   const payload = construirPayloadOrdenCompra({ ...input, subsidiaryId });
   return postRecord("purchaseorder", payload);
@@ -154,7 +168,8 @@ export async function crearOrdenVenta(input: {
   netsuiteItemId: string;
   pesoKg: number;
   precioUnitarioKg: number;
-}): Promise<{ id: string; tranId: string }> {
+  tranDate: string;
+}): Promise<{ id: string; tranId: string | null }> {
   const subsidiaryId = requerido("NETSUITE_SUBSIDIARY_ID");
   const payload = construirPayloadOrdenVenta({ ...input, subsidiaryId });
   return postRecord("salesorder", payload);

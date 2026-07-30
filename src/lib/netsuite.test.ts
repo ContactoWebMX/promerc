@@ -17,11 +17,13 @@ test("construirPayloadOrdenCompra arma entity/subsidiary/item y no incluye lote"
     netoKg: 980.5,
     precioUnitarioKg: 3.5,
     subsidiaryId: "14",
+    tranDate: "2026-07-29",
   });
 
   assert.deepEqual(payload, {
     entity: { id: "123" },
     subsidiary: { id: "14" },
+    tranDate: "2026-07-29",
     item: {
       items: [{ item: { id: "456" }, quantity: 980.5, rate: 3.5 }],
     },
@@ -38,11 +40,13 @@ test("construirPayloadOrdenVenta arma entity/subsidiary/item y no incluye lote",
     pesoKg: 500,
     precioUnitarioKg: 4.2,
     subsidiaryId: "14",
+    tranDate: "2026-07-29",
   });
 
   assert.deepEqual(payload, {
     entity: { id: "789" },
     subsidiary: { id: "14" },
+    tranDate: "2026-07-29",
     item: {
       items: [{ item: { id: "456" }, quantity: 500, rate: 4.2 }],
     },

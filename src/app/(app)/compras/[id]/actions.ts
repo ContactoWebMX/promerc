@@ -169,13 +169,14 @@ export async function enviarCompraANetSuite(
     };
   }
 
-  let orden: { id: string; tranId: string };
+  let orden: { id: string; tranId: string | null };
   try {
     orden = await crearOrdenCompra({
       netsuiteVendorId: compra.proveedor.netsuiteVendorId,
       netsuiteItemId: compra.pesaje.articulo.netsuiteItemId,
       netoKg: Number(compra.pesaje.netoKg ?? 0),
       precioUnitarioKg: Number(compra.precioUnitarioKg),
+      tranDate: compra.createdAt.toISOString().slice(0, 10),
     });
   } catch (error) {
     return {

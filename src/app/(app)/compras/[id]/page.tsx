@@ -89,7 +89,14 @@ export default async function CompraDetailPage({
           <dt className="text-muted">NetSuite</dt>
           <dd>
             {compra.netsuiteOrderId ? (
-              <EstadoBadge label={`Enviada — ${compra.netsuiteOrderNumber}`} tone="positive" />
+              <EstadoBadge
+                label={
+                  compra.netsuiteOrderNumber
+                    ? `Enviada — ${compra.netsuiteOrderNumber}`
+                    : "Enviada (folio pendiente de confirmar)"
+                }
+                tone="positive"
+              />
             ) : (
               "—"
             )}

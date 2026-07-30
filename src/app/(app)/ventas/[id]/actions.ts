@@ -307,13 +307,14 @@ export async function enviarVentaANetSuite(
     };
   }
 
-  let orden: { id: string; tranId: string };
+  let orden: { id: string; tranId: string | null };
   try {
     orden = await crearOrdenVenta({
       netsuiteCustomerId: venta.cliente.netsuiteCustomerId,
       netsuiteItemId: venta.articulo.netsuiteItemId,
       pesoKg: Number(venta.pesoReportadoClienteKg ?? 0),
       precioUnitarioKg: Number(venta.precioUnitarioKg),
+      tranDate: venta.createdAt.toISOString().slice(0, 10),
     });
   } catch (error) {
     return {
