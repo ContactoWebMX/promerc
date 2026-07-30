@@ -15,6 +15,7 @@ import {
   corregirVentaSchema,
 } from "@/lib/validations/ventas";
 import type { Prisma } from "@/generated/prisma/client";
+import { crearOrdenVenta } from "@/lib/netsuite";
 
 export type VentaFormState =
   | { errors?: Record<string, string[]>; message?: string }
@@ -271,5 +272,72 @@ export async function aprobarExcepcionTolerancia(
 
   revalidatePath(`/ventas/${id}`);
   revalidatePath("/ventas");
+  redirect(`/ventas/${id}`);
+}
+
+export async function enviarVentaANetSuite(
+  _state: VentaFormState,
+  formData: FormData,
+): Promise<VentaFormState> {
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
+
+  const id = Number(formData.get("id"));
+  const venta = await prisma.venta.findUnique({
+    where: { id },
+    include: { cliente: true, articulo: true },
+  });
+  if (!venta) return { message: "Venta no encontrada." };
+  if (!canAccessUbicacion(usuario, venta.ubicacionId)) {
+    return { message: "Venta no encontrada." };
+  }
+  if (venta.estado !== "CERRADA") {
+    return { message: "Solo se pueden enviar a NetSuite ventas cerradas." };
+  }
+  if (venta.netsuiteOrderId) {
+    return { message: "Esta venta ya fue enviada a NetSuite." };
+  }
+  if (!venta.cliente.netsuiteCustomerId) {
+    return {
+      message: `Falta configurar el ID de NetSuite del cliente "${venta.cliente.nombre}".`,
+    };
+  }
+  if (!venta.articulo.netsuiteItemId) {
+    return {
+      message: `Falta configurar el ID de NetSuite del artículo "${venta.articulo.nombre}".`,
+    };
+  }
+
+  let orden: { id: string; tranId: string };
+  try {
+    orden = await crearOrdenVenta({
+      netsuiteCustomerId: venta.cliente.netsuiteCustomerId,
+      netsuiteItemId: venta.articulo.netsuiteItemId,
+      pesoKg: Number(venta.pesoReportadoClienteKg ?? 0),
+      precioUnitarioKg: Number(venta.precioUnitarioKg),
+    });
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Error al enviar la venta a NetSuite.",
+    };
+  }
+
+  await prisma.venta.update({
+    where: { id },
+    data: {
+      netsuiteOrderId: orden.id,
+      netsuiteOrderNumber: orden.tranId,
+      netsuiteSyncedAt: new Date(),
+    },
+  });
+
+  await registrarAuditLog({
+    entidad: "Venta",
+    entidadId: id,
+    accion: "VENTA_ENVIADA_NETSUITE",
+    usuarioId: usuario.id,
+    detalleNuevo: { netsuiteOrderId: orden.id, netsuiteOrderNumber: orden.tranId },
+  });
+
+  revalidatePath(`/ventas/${id}`);
   redirect(`/ventas/${id}`);
 }

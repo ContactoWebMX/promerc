@@ -13,7 +13,12 @@ import { trazaDesdeLote } from "@/lib/traza";
 import { obtenerUmbralTolerancia } from "@/lib/tolerancia-config";
 import { calcularDiferenciaPorcentual } from "@/lib/tolerancia";
 import { ReportarPesoForm } from "./reportar-peso-form";
-import { aprobarExcepcionTolerancia, corregirVenta, eliminarVenta } from "./actions";
+import {
+  aprobarExcepcionTolerancia,
+  corregirVenta,
+  eliminarVenta,
+  enviarVentaANetSuite,
+} from "./actions";
 
 const ESTADO_CONFIG: Record<string, { label: string; tone: EstadoTone }> = {
   BORRADOR: { label: "Falta reportar peso", tone: "neutral" },
@@ -56,6 +61,11 @@ export default async function VentaDetailPage({
 
   const puedeAprobar = usuario.role === "ADMIN" || usuario.role === "SUPERVISOR";
   const pendiente = venta.estado === "PENDIENTE_APROBACION";
+  const puedeEnviarANetSuite =
+    (usuario.role === "ADMIN" || usuario.role === "SUPERVISOR") &&
+    venta.estado === "CERRADA" &&
+    !venta.netsuiteOrderId;
+  const faltaMapeoNetSuite = !venta.cliente.netsuiteCustomerId || !venta.articulo.netsuiteItemId;
   const traza =
     venta.movimientos.length === 1
       ? await trazaDesdeLote(venta.movimientos[0].loteId)
@@ -94,6 +104,14 @@ export default async function VentaDetailPage({
           <dd>${venta.precioUnitarioKg.toString()}</dd>
           <dt className="text-muted">Importe</dt>
           <dd className="font-semibold">${venta.importeTotal.toString()}</dd>
+          <dt className="text-muted">NetSuite</dt>
+          <dd>
+            {venta.netsuiteOrderId ? (
+              <EstadoBadge label={`Enviada — ${venta.netsuiteOrderNumber}`} tone="positive" />
+            ) : (
+              "—"
+            )}
+          </dd>
           {venta.pesoReportadoClienteKg && (
             <>
               <dt className="text-muted">Peso reportado por cliente</dt>
@@ -201,6 +219,25 @@ export default async function VentaDetailPage({
           Esta venta excede el umbral de tolerancia y espera aprobación de un
           supervisor.
         </p>
+      )}
+
+      {puedeEnviarANetSuite && (
+        <Card>
+          {faltaMapeoNetSuite ? (
+            <p className="text-sm text-muted">
+              Falta configurar el ID de NetSuite del cliente o del artículo antes de poder
+              enviar esta venta como Orden de Venta.
+            </p>
+          ) : (
+            <CatalogForm
+              action={enviarVentaANetSuite}
+              submitLabel="Enviar a NetSuite"
+              hiddenId={venta.id}
+              confirmMessage={`¿Enviar esta venta como Orden de Venta a NetSuite? Cliente ${venta.cliente.nombre}, importe $${venta.importeTotal.toString()}.`}
+              fields={[]}
+            />
+          )}
+        </Card>
       )}
 
       {usuario.role === "ADMIN" && venta.estado !== "CANCELADA" && (
