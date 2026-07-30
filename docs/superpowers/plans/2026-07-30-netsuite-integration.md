@@ -318,10 +318,14 @@ Expected: FAIL — `Cannot find module './netsuite'` (el archivo todavía no exi
 
 - [ ] **Step 3: Implementar `src/lib/netsuite.ts`**
 
-Create `src/lib/netsuite.ts`:
+Create `src/lib/netsuite.ts`. No lleva `import "server-only"` — mismo
+criterio que `src/lib/tolerancia.ts` ("Funciones puras, sin dependencias de
+servidor — importables desde cualquier contexto"): este módulo solo se
+importa desde Server Actions (que Next.js ya excluye del bundle de
+cliente), y necesita poder cargarse bajo `tsx --test` para su self-check,
+donde `server-only` lanzaría un error:
 
 ```ts
-import "server-only";
 import crypto from "node:crypto";
 
 function requerido(nombre: string): string {
