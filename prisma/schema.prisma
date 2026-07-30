@@ -19,6 +19,7 @@ enum RoleUsuario {
 
 enum EstadoPesaje {
   TARA_CAPTURADA
+  CARGA_REGISTRADA // artículo, pacas, destino y firma de salida ya capturados — falta pasar por báscula
   COMPLETO
   ANULADO
 }
@@ -44,7 +45,8 @@ enum TipoFirma {
 }
 
 enum TipoEvidencia {
-  TICKET_BASCULA
+  TICKET_TARA // foto del ticket al pesar el camión vacío
+  TICKET_BASCULA // foto del ticket al cerrar (peso cargado)
   COMPROBANTE_CLIENTE
   OTRO
 }
@@ -179,24 +181,26 @@ model Lote {
 
   compras     Compra[]
   movimientos LoteMovimiento[]
+  pesajes     Pesaje[]
 }
 
 model Pesaje {
-  id          Int       @id @default(autoincrement())
-  folioTicket String // folio físico de báscula — referencia, no identidad
-  ubicacionId Int
-  ubicacion   Ubicacion @relation(fields: [ubicacionId], references: [id])
-  articuloId  Int
-  articulo    Articulo  @relation(fields: [articuloId], references: [id])
-  proveedorId Int
-  proveedor   Proveedor @relation(fields: [proveedorId], references: [id])
+  id                 Int       @id @default(autoincrement())
+  folioTicket        String // folio físico de báscula — referencia, no identidad
+  idOperacionBascula String? // ID/folio de operación impreso en el ticket, distinto del folioTicket
+  ubicacionId        Int
+  ubicacion          Ubicacion @relation(fields: [ubicacionId], references: [id])
+  articuloId         Int? // se define al registrar la salida (carga) — en la tara el camión va vacío
+  articulo           Articulo? @relation(fields: [articuloId], references: [id])
+  proveedorId        Int
+  proveedor          Proveedor @relation(fields: [proveedorId], references: [id])
+  loteId             Int? // se crea al cerrar (báscula) — el lote nace con el pesaje, no con la compra
+  lote               Lote?     @relation(fields: [loteId], references: [id])
 
   transportistaId Int?
   transportista   Transportista? @relation(fields: [transportistaId], references: [id])
   operadorNombre  String
   placas          String
-  colorCamion     String?
-  tipoCamion      String? // "Trailer", etc.
   pesadorNombre   String? // empleado de báscula, confirmado al cerrar
 
   taraKg          Decimal   @db.Decimal(10, 2)
@@ -205,7 +209,7 @@ model Pesaje {
   netoKg          Decimal?  @db.Decimal(10, 2)
   netoCapturadoEn DateTime?
 
-  clienteDestinoReferencia String? // nombre anotado a mano en el ticket, informativo
+  clienteDestinoReferencia String? // nombre anotado a mano al registrar la salida, informativo
   observaciones            String?
   motivoAnulacion          String?
   estado                   EstadoPesaje @default(TARA_CAPTURADA)
@@ -264,8 +268,11 @@ model Venta {
 
   pesoVendidoKg          Decimal  @db.Decimal(10, 2) // suma de LoteMovimiento asignados
   pesoReportadoClienteKg Decimal? @db.Decimal(10, 2) // crudo, nunca se sobreescribe
-  penalizacionKg         Decimal  @default(0) @db.Decimal(10, 2)
-  penalizacionMotivo     String? // obligatorio en la app si penalizacionKg > 0
+  // pesoVendidoKg - pesoReportadoClienteKg: positivo = merma (cliente reportó
+  // menos), negativo = sobrante (reportó más). Se calcula solo, nunca se
+  // captura a mano — ver reportarPesoVenta.
+  diferenciaKg     Decimal @default(0) @db.Decimal(10, 2)
+  motivoDiferencia String? // obligatorio en la app si diferenciaKg != 0
 
   precioUnitarioKg   Decimal     @db.Decimal(10, 2)
   importeTotal       Decimal     @db.Decimal(12, 2)

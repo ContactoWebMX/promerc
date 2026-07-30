@@ -30,6 +30,13 @@ export const usuarioSchema = z.object({
   clienteId: z.string().nullish(),
 });
 
+export const toleranciaSchema = z.object({
+  porcentajeUmbral: z.coerce
+    .number({ error: "Debe ser un número." })
+    .positive({ error: "Debe ser mayor a 0." })
+    .max(100, { error: "No puede ser mayor a 100." }),
+});
+
 export const usuarioPasswordSchema = z
   .string()
   .min(8, { error: "Debe tener al menos 8 caracteres." })

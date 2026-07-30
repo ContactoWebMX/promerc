@@ -1,12 +1,16 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 
-export async function inventarioPorArticuloUbicacion() {
+export async function inventarioPorArticuloUbicacion(ubicacionId?: number) {
   const lotes = await prisma.lote.findMany({
+    where: ubicacionId ? { ubicacionId } : undefined,
     include: {
       ubicacion: true,
       articulo: true,
-      compras: { select: { pesaje: { select: { netoKg: true } } } },
+      compras: {
+        where: { estado: { not: "CANCELADA" } },
+        select: { pesaje: { select: { netoKg: true } } },
+      },
       movimientos: { select: { pesoAsignadoKg: true } },
     },
   });
@@ -53,7 +57,7 @@ export async function resumenPeriodo(
 
   const [compras, ventas, pendientes] = await Promise.all([
     prisma.compra.findMany({
-      where: { createdAt: rangoFecha, ...filtroUbicacion },
+      where: { createdAt: rangoFecha, estado: { not: "CANCELADA" }, ...filtroUbicacion },
       include: { pesaje: { select: { netoKg: true } } },
     }),
     prisma.venta.findMany({

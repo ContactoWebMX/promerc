@@ -8,6 +8,7 @@ const catalogos = [
   { href: "/catalogos/articulos", label: "Artículos" },
   { href: "/catalogos/unidades-empaque", label: "Unidades de empaque" },
   { href: "/catalogos/usuarios", label: "Usuarios" },
+  { href: "/catalogos/tolerancia", label: "Tolerancia" },
 ];
 
 export default function CatalogosPage() {

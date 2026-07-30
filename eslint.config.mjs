@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Assets de Tesseract.js vendorizados para OCR offline (worker/core
+    // WASM minificados de terceros, servidos tal cual desde /public).
+    "public/tesseract/**",
+    // Salida del postbuild (ver DEPLOY.md) — ya gitignored, no es código fuente.
+    "deploy/**",
   ]),
 ]);
 

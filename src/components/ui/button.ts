@@ -4,9 +4,11 @@ type Size = "md" | "sm";
 const base =
   "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:opacity-60 disabled:pointer-events-none whitespace-nowrap";
 
+// min-h-11 (44px) para cumplir el objetivo táctil mínimo (WCAG 2.5.5) —
+// esta app se opera junto a la báscula, a menudo desde tablet/teléfono.
 const sizes: Record<Size, string> = {
-  md: "px-4 py-2 text-sm",
-  sm: "px-3 py-1.5 text-sm",
+  md: "min-h-11 px-4 py-2 text-sm",
+  sm: "min-h-11 px-3 py-1.5 text-sm",
 };
 
 const variants: Record<Variant, string> = {

@@ -5,10 +5,7 @@ import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
 import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
-
-function formatoFechaInput(fecha: Date) {
-  return fecha.toISOString().slice(0, 10);
-}
+import { resolverRangoFecha } from "@/lib/rango-fecha";
 
 const ACCESOS_RAPIDOS = [
   { href: "/pesajes/nuevo", label: "Nuevo pesaje" },
@@ -35,20 +32,17 @@ export default async function HomePage({
   }
 
   const params = await searchParams;
-  const hoy = new Date();
-  const hace30Dias = new Date(hoy);
-  hace30Dias.setDate(hace30Dias.getDate() - 30);
-
-  const desde = params.desde ? new Date(`${params.desde}T00:00:00`) : hace30Dias;
-  const hasta = params.hasta ? new Date(`${params.hasta}T23:59:59`) : hoy;
+  const { desde, hasta, desdeStr, hastaStr } = resolverRangoFecha(params.desde, params.hasta);
 
   const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
   const ubicacionId = soloMiUbicacion ? (usuario.ubicacionId ?? -1) : undefined;
 
   const [resumen, inventario] = await Promise.all([
     resumenPeriodo(desde, hasta, ubicacionId),
-    inventarioPorArticuloUbicacion(),
+    inventarioPorArticuloUbicacion(ubicacionId),
   ]);
+
+  const exportQuery = `?desde=${desdeStr}&hasta=${hastaStr}`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,7 +68,7 @@ export default async function HomePage({
             id="desde"
             name="desde"
             type="date"
-            defaultValue={formatoFechaInput(desde)}
+            defaultValue={desdeStr}
             className={inputClass}
           />
         </div>
@@ -86,7 +80,7 @@ export default async function HomePage({
             id="hasta"
             name="hasta"
             type="date"
-            defaultValue={formatoFechaInput(hasta)}
+            defaultValue={hastaStr}
             className={inputClass}
           />
         </div>
@@ -122,11 +116,11 @@ export default async function HomePage({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-medium">Inventario por artículo / ubicación</h2>
           <div className="flex flex-wrap gap-4 text-sm">
-            <a href="/api/exports/compras" className={buttonClass("link")}>
-              Exportar compras
+            <a href={`/api/exports/compras${exportQuery}`} className={buttonClass("link")}>
+              Exportar compras del periodo
             </a>
-            <a href="/api/exports/ventas" className={buttonClass("link")}>
-              Exportar ventas
+            <a href={`/api/exports/ventas${exportQuery}`} className={buttonClass("link")}>
+              Exportar ventas del periodo
             </a>
             <a href="/api/exports/inventario" className={buttonClass("link")}>
               Exportar inventario

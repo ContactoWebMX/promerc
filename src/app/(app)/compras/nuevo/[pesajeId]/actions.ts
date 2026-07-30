@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth/dal";
-import { obtenerOCrearLoteDelDia } from "@/lib/lote";
+import { requireRole, canAccessUbicacion } from "@/lib/auth/dal";
+import { actualizarEstadoLote } from "@/lib/lote";
 import { crearCompraSchema } from "@/lib/validations/compras";
 import type { CatalogFormState } from "@/components/catalog-form";
 
@@ -11,7 +11,7 @@ export async function crearCompra(
   _state: CatalogFormState,
   formData: FormData,
 ): Promise<CatalogFormState> {
-  await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
 
   const pesajeId = Number(formData.get("pesajeId"));
   const pesaje = await prisma.pesaje.findUnique({
@@ -20,11 +20,17 @@ export async function crearCompra(
   });
 
   if (!pesaje) return { message: "Pesaje no encontrado." };
+  if (!canAccessUbicacion(usuario, pesaje.ubicacionId)) {
+    return { message: "Pesaje no encontrado." };
+  }
   if (pesaje.estado !== "COMPLETO") {
     return { message: "El pesaje debe estar completo (con neto capturado) para registrar la compra." };
   }
   if (pesaje.compra) {
     return { message: "Este pesaje ya tiene una compra registrada." };
+  }
+  if (!pesaje.articuloId || !pesaje.loteId) {
+    return { message: "Falta el artículo o el lote de este pesaje." };
   }
 
   const validated = crearCompraSchema.safeParse({
@@ -37,18 +43,18 @@ export async function crearCompra(
   const netoKg = Number(pesaje.netoKg);
   const importeTotal = Number((validated.data.precioUnitarioKg * netoKg).toFixed(2));
 
-  const lote = await obtenerOCrearLoteDelDia(pesaje.ubicacionId, pesaje.articuloId);
-
   const compra = await prisma.compra.create({
     data: {
       pesajeId: pesaje.id,
       ubicacionId: pesaje.ubicacionId,
       proveedorId: pesaje.proveedorId,
-      loteId: lote.id,
+      loteId: pesaje.loteId,
       precioUnitarioKg: validated.data.precioUnitarioKg,
       importeTotal,
     },
   });
+
+  await actualizarEstadoLote(pesaje.loteId);
 
   redirect(`/compras/${compra.id}`);
 }

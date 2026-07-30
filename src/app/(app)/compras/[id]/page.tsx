@@ -1,8 +1,22 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getCurrentUser, canAccessUbicacion } from "@/lib/auth/dal";
 import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
+import { inputClass, labelClass } from "@/components/ui/field";
+import { ActionDialog } from "@/components/ui/action-dialog";
+import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
+import { CatalogForm } from "@/components/catalog-form";
+import { Traza } from "@/components/ui/traza";
+import { trazaDesdePesaje } from "@/lib/traza";
+import { corregirCompra, eliminarCompra, anularCompra } from "./actions";
+
+const ESTADO_CONFIG: Record<string, { label: string; tone: EstadoTone }> = {
+  ABIERTA: { label: "Abierta", tone: "neutral" },
+  CERRADA: { label: "Cerrada", tone: "positive" },
+  CANCELADA: { label: "Cancelada", tone: "danger" },
+};
 
 export default async function CompraDetailPage({
   params,
@@ -10,35 +24,52 @@ export default async function CompraDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const usuario = await getCurrentUser();
   const compra = await prisma.compra.findUnique({
     where: { id: Number(id) },
     include: {
-      pesaje: true,
+      pesaje: { include: { articulo: true } },
       proveedor: true,
       ubicacion: true,
-      lote: true,
+      lote: { include: { movimientos: true } },
     },
   });
 
   if (!compra) notFound();
+  if (!canAccessUbicacion(usuario, compra.ubicacionId)) notFound();
+
+  const asignado =
+    compra.lote?.movimientos.reduce((s, m) => s + Number(m.pesoAsignadoKg), 0) ?? 0;
+  const puedeAnularOEliminar =
+    usuario.role === "ADMIN" && asignado === 0 && compra.estado !== "CANCELADA";
+  const traza = await trazaDesdePesaje(compra.pesajeId);
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title={`Compra — ticket ${compra.pesaje.folioTicket}`} />
+
+      {traza && <Traza traza={traza} actual={{ tipo: "compra", id: compra.id }} />}
       <Card>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <dt className="text-muted">Proveedor</dt>
           <dd>{compra.proveedor.nombre}</dd>
           <dt className="text-muted">Ubicación</dt>
           <dd>{compra.ubicacion.nombre}</dd>
+          <dt className="text-muted">Artículo</dt>
+          <dd>{compra.pesaje.articulo?.nombre ?? "—"}</dd>
           <dt className="text-muted">Neto comprado</dt>
           <dd>{compra.pesaje.netoKg?.toString()} kg</dd>
           <dt className="text-muted">Precio por kg</dt>
-          <dd>{compra.precioUnitarioKg.toString()}</dd>
+          <dd>${compra.precioUnitarioKg.toString()}</dd>
           <dt className="text-muted">Importe total</dt>
-          <dd className="font-semibold">{compra.importeTotal.toString()}</dd>
+          <dd className="font-semibold">${compra.importeTotal.toString()}</dd>
           <dt className="text-muted">Estado</dt>
-          <dd>{compra.estado}</dd>
+          <dd>
+            <EstadoBadge
+              label={ESTADO_CONFIG[compra.estado]?.label ?? compra.estado}
+              tone={ESTADO_CONFIG[compra.estado]?.tone ?? "neutral"}
+            />
+          </dd>
           <dt className="text-muted">Lote</dt>
           <dd>
             {compra.lote ? (
@@ -51,9 +82,86 @@ export default async function CompraDetailPage({
           </dd>
         </dl>
       </Card>
-      <Link href={`/pesajes/${compra.pesajeId}`} className={buttonClass("secondary")}>
-        Ver pesaje de origen
-      </Link>
+
+      {usuario.role === "ADMIN" && (
+        <div className="flex flex-wrap items-center gap-2">
+          {compra.estado !== "CANCELADA" && (
+            <ActionDialog
+              label="Corregir"
+              title="Corregir compra (administrador)"
+              description="Para errores de captura. Queda registrado en la bitácora de auditoría."
+            >
+              <CatalogForm
+                action={corregirCompra}
+                submitLabel="Guardar corrección"
+                hiddenId={compra.id}
+                defaultValues={{
+                  precioUnitarioKg: compra.precioUnitarioKg.toString(),
+                }}
+                fields={[
+                  {
+                    name: "precioUnitarioKg",
+                    label: "Precio por kg ($)",
+                    type: "number",
+                    required: true,
+                    min: 0,
+                    step: 0.01,
+                  },
+                  { name: "motivo", label: "Motivo de la corrección", required: true },
+                ]}
+              />
+            </ActionDialog>
+          )}
+
+          {puedeAnularOEliminar ? (
+            <>
+              <ActionDialog
+                label="Anular compra"
+                tone="danger"
+                title="Anular compra"
+                description={`Ticket ${compra.pesaje.folioTicket} — importe $${compra.importeTotal.toString()}. Se conserva el registro, con el motivo, en la bitácora de auditoría.`}
+              >
+                <CatalogForm
+                  action={anularCompra}
+                  submitLabel="Anular compra"
+                  hiddenId={compra.id}
+                  fields={[{ name: "motivo", label: "Motivo de la anulación", required: true }]}
+                />
+              </ActionDialog>
+
+              <ActionDialog
+                label="Eliminar compra"
+                tone="danger"
+                title="Eliminar compra"
+                description={`Ticket ${compra.pesaje.folioTicket} — importe $${compra.importeTotal.toString()}. Borra el registro por completo, no se puede deshacer.`}
+              >
+                <form action={eliminarCompra} className="flex flex-col gap-2">
+                  <input type="hidden" name="id" value={compra.id} />
+                  <label htmlFor="motivoEliminar" className={labelClass}>
+                    Motivo
+                  </label>
+                  <input
+                    id="motivoEliminar"
+                    name="motivo"
+                    placeholder="Motivo"
+                    required
+                    className={inputClass}
+                  />
+                  <button type="submit" className={buttonClass("danger")}>
+                    Eliminar compra
+                  </button>
+                </form>
+              </ActionDialog>
+            </>
+          ) : (
+            <p className="text-sm text-muted">
+              {compra.estado === "CANCELADA"
+                ? "Esta compra ya está cancelada."
+                : "No se puede anular ni eliminar: su lote ya tiene ventas que consumen este material."}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

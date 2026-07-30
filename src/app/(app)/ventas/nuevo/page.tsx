@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth/dal";
 import { lotesConDisponible } from "@/lib/lote";
 import { CatalogForm } from "@/components/catalog-form";
 import { PageHeader } from "@/components/ui/card";
 import { crearVenta } from "./actions";
 
 export default async function NuevaVentaPage() {
+  const usuario = await getCurrentUser();
+  const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
+
   const [clientes, lotes] = await Promise.all([
     prisma.cliente.findMany({ where: { activo: true }, orderBy: { nombre: "asc" } }),
-    lotesConDisponible(),
+    lotesConDisponible(undefined, soloMiUbicacion ? (usuario.ubicacionId ?? -1) : undefined),
   ]);
 
   return (
@@ -32,11 +36,15 @@ export default async function NuevaVentaPage() {
             {
               name: "loteId",
               label: "Lote",
-              type: "select",
+              type: "combobox",
               required: true,
+              helpText: "Escribe el folio o el artículo para buscar entre los lotes abiertos.",
               options: lotes.map((l) => ({
                 value: l.id.toString(),
-                label: `${l.folio} — ${l.ubicacion.nombre} — ${l.articulo.nombre} — disponible: ${l.disponible.toFixed(2)} kg`,
+                group: l.articulo.nombre,
+                label: soloMiUbicacion
+                  ? `${l.articulo.nombre} — ${l.folio} — disponible: ${l.disponible.toFixed(2)} kg`
+                  : `${l.articulo.nombre} — ${l.folio} — ${l.ubicacion.nombre} — disponible: ${l.disponible.toFixed(2)} kg`,
               })),
             },
             {
@@ -49,7 +57,7 @@ export default async function NuevaVentaPage() {
             },
             {
               name: "precioUnitarioKg",
-              label: "Precio por kg",
+              label: "Precio por kg ($)",
               type: "number",
               required: true,
               min: 0,

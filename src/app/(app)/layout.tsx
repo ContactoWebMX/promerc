@@ -11,10 +11,12 @@ export default async function AppLayout({
     usuario.role === "CLIENTE"
       ? []
       : [
+          { href: "/", label: "Reportes" },
           { href: "/pesajes", label: "Pesajes" },
           { href: "/compras", label: "Compras" },
           { href: "/lotes", label: "Lotes" },
           { href: "/ventas", label: "Ventas" },
+          { href: "/mermas", label: "Mermas" },
           ...(usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
             ? [{ href: "/catalogos", label: "Catálogos" }]
             : []),
@@ -26,6 +28,12 @@ export default async function AppLayout({
         links={links}
         usuarioNombre={usuario.nombre}
         usuarioRole={usuario.role}
+        usuarioUbicacion={
+          usuario.ubicacion?.nombre ??
+          (usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
+            ? "Todas las sedes"
+            : undefined)
+        }
         logoutAction={logout}
       />
       <main className="flex w-full min-w-0 flex-1 flex-col p-4 sm:p-6">

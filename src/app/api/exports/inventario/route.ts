@@ -3,9 +3,12 @@ import { inventarioPorArticuloUbicacion } from "@/lib/reportes";
 import { buildWorkbook } from "@/lib/export/excel";
 
 export async function GET() {
-  await getCurrentUser();
+  const usuario = await getCurrentUser();
+  const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
 
-  const inventario = await inventarioPorArticuloUbicacion();
+  const inventario = await inventarioPorArticuloUbicacion(
+    soloMiUbicacion ? (usuario.ubicacionId ?? -1) : undefined,
+  );
 
   const rows = inventario.map((i) => ({
     Ubicacion: i.ubicacion,

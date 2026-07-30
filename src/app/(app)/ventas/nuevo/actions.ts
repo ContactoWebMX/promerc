@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth/dal";
+import { requireRole, canAccessUbicacion } from "@/lib/auth/dal";
+import { actualizarEstadoLote } from "@/lib/lote";
 import { crearVentaSchema } from "@/lib/validations/ventas";
 import type { CatalogFormState } from "@/components/catalog-form";
 
@@ -28,11 +29,17 @@ export async function crearVenta(
   const lote = await prisma.lote.findUnique({
     where: { id: loteId },
     include: {
-      compras: { select: { pesaje: { select: { netoKg: true } } } },
+      compras: {
+        where: { estado: { not: "CANCELADA" } },
+        select: { pesaje: { select: { netoKg: true } } },
+      },
       movimientos: { select: { pesoAsignadoKg: true } },
     },
   });
   if (!lote || lote.estado !== "ABIERTO") {
+    return { message: "El lote seleccionado ya no está disponible." };
+  }
+  if (!canAccessUbicacion(usuario, lote.ubicacionId)) {
     return { message: "El lote seleccionado ya no está disponible." };
   }
 
@@ -78,6 +85,8 @@ export async function crearVenta(
       },
     },
   });
+
+  await actualizarEstadoLote(lote.id);
 
   redirect(`/ventas/${venta.id}`);
 }

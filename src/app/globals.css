@@ -5,7 +5,10 @@
   --foreground: #0f172a;
   --surface: #ffffff;
   --border: #e2e8f0;
-  --muted: #64748b;
+  /* slate-600, no slate-500: el texto secundario (labels, encabezados de
+     tabla, timestamps) se lee bajo sol directo junto a la báscula — 4.5:1
+     era el mínimo de AA sin margen, esto da ~7.5:1 contra --surface. */
+  --muted: #475569;
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-foreground: #ffffff;

@@ -1,11 +1,26 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/auth/dal";
+import { getCurrentUser, canAccessUbicacion } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { CatalogForm } from "@/components/catalog-form";
 import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
+import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
+import { Traza } from "@/components/ui/traza";
+import { trazaDesdeLote } from "@/lib/traza";
+import { AuditTimeline } from "@/components/ui/audit-timeline";
 import { corregirFolioLote } from "./actions";
+
+const ESTADO_CONFIG: Record<string, { label: string; tone: EstadoTone }> = {
+  ABIERTO: { label: "Abierto", tone: "neutral" },
+  CERRADO: { label: "Cerrado", tone: "positive" },
+};
+
+const ESTADO_COMPRA: Record<string, { label: string; tone: EstadoTone }> = {
+  ABIERTA: { label: "Abierta", tone: "neutral" },
+  CERRADA: { label: "Cerrada", tone: "positive" },
+  CANCELADA: { label: "Cancelada", tone: "danger" },
+};
 
 export default async function LoteDetailPage({
   params,
@@ -23,6 +38,7 @@ export default async function LoteDetailPage({
         ubicacion: true,
         articulo: true,
         compras: { include: { pesaje: true, proveedor: true } },
+        pesajes: { include: { compra: true } },
       },
     }),
     prisma.auditLog.findMany({
@@ -33,20 +49,32 @@ export default async function LoteDetailPage({
   ]);
 
   if (!lote) notFound();
+  if (!canAccessUbicacion(usuario, lote.ubicacionId)) notFound();
 
-  const totalKg = lote.compras.reduce(
-    (sum, c) => sum + Number(c.pesaje.netoKg ?? 0),
-    0,
-  );
+  const totalKg = lote.compras
+    .filter((c) => c.estado !== "CANCELADA")
+    .reduce((sum, c) => sum + Number(c.pesaje.netoKg ?? 0), 0);
+  const pesajesSinCompra = lote.pesajes.filter((p) => !p.compra);
   const puedeCorregir = usuario.role === "ADMIN" || usuario.role === "SUPERVISOR";
+  const traza = lote.pesajes.length === 1 ? await trazaDesdeLote(lote.id) : null;
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`Lote ${lote.folio}`} />
+      <PageHeader
+        title={`Lote ${lote.folio}`}
+        action={
+          <EstadoBadge
+            label={ESTADO_CONFIG[lote.estado]?.label ?? lote.estado}
+            tone={ESTADO_CONFIG[lote.estado]?.tone ?? "neutral"}
+          />
+        }
+      />
       <p className="-mt-4 text-sm text-muted">
         {lote.ubicacion.nombre} · {lote.articulo.nombre} ·{" "}
-        {lote.fecha.toLocaleDateString("es-MX")} · Estado: {lote.estado}
+        {lote.fecha.toLocaleDateString("es-MX")}
       </p>
+
+      {traza && <Traza traza={traza} actual={{ tipo: "lote", id: lote.id }} />}
 
       <Card className="text-sm">
         <p className="font-medium">
@@ -55,16 +83,36 @@ export default async function LoteDetailPage({
         </p>
         <ul className="mt-2 list-disc pl-5">
           {lote.compras.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="flex items-center gap-2">
               <Link href={`/compras/${c.id}`} className={buttonClass("link")}>
                 {c.pesaje.folioTicket}
               </Link>{" "}
               — {c.proveedor.nombre} — {c.pesaje.netoKg?.toString()} kg
+              <EstadoBadge
+                label={ESTADO_COMPRA[c.estado]?.label ?? c.estado}
+                tone={ESTADO_COMPRA[c.estado]?.tone ?? "neutral"}
+              />
             </li>
           ))}
           {lote.compras.length === 0 && <li>Sin compras asignadas todavía.</li>}
         </ul>
       </Card>
+
+      {pesajesSinCompra.length > 0 && (
+        <Card className="text-sm">
+          <p className="font-medium">Pesado, falta registrar la compra</p>
+          <ul className="mt-2 list-disc pl-5">
+            {pesajesSinCompra.map((p) => (
+              <li key={p.id}>
+                {p.folioTicket} — {p.netoKg?.toString()} kg —{" "}
+                <Link href={`/compras/nuevo/${p.id}`} className={buttonClass("link")}>
+                  Registrar compra
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {puedeCorregir && (
         <div className="flex flex-col gap-2">
@@ -83,16 +131,9 @@ export default async function LoteDetailPage({
       )}
 
       {auditoria.length > 0 && (
-        <div className="text-sm">
-          <p className="font-medium">Historial de cambios</p>
-          <ul className="list-disc pl-5">
-            {auditoria.map((a) => (
-              <li key={a.id}>
-                {a.createdAt.toLocaleString("es-MX")} — {a.usuario.nombre}:{" "}
-                {a.accion} ({a.motivo})
-              </li>
-            ))}
-          </ul>
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium">Historial de cambios</p>
+          <AuditTimeline entradas={auditoria} />
         </div>
       )}
     </div>

@@ -23,6 +23,7 @@ export const getCurrentUser = cache(async () => {
 
   const usuario = await prisma.usuario.findUnique({
     where: { id: session.userId },
+    include: { ubicacion: true },
   });
 
   if (!usuario || !usuario.activo) {

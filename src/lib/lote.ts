@@ -17,28 +17,21 @@ function formatoFecha(fecha: Date) {
   return `${y}${m}${d}`;
 }
 
-// Un lote agrupa las compras de un artículo/ubicación por día de salida.
-// El folio es correlativo por día (L-YYYYMMDD-###); el conteo + create no es
-// atómico, así que ante una colisión de folio (dos compras concurrentes
-// abriendo el primer lote del día) se reintenta un par de veces.
+// Un lote se crea uno por compra (== uno por pesaje, ya que Compra es 1:1 con
+// Pesaje) para trazabilidad por operación: cada venta puede rastrearse hasta
+// el camión/proveedor exacto que originó el material, vía LoteMovimiento
+// (N:M con Venta). El folio sigue siendo correlativo por día
+// (L-YYYYMMDD-###) — ### ahora cuenta operaciones del día, no lotes-resumen.
+// El conteo + create no es atómico, así que ante una colisión de folio (dos
+// compras concurrentes el mismo día) se reintenta un par de veces.
 // ponytail: reintento optimista, no lock distribuido — suficiente para el
 // volumen de una báscula; si el throughput crece, mover a una secuencia de BD.
-export async function obtenerOCrearLoteDelDia(
+export async function crearLoteParaCompra(
   ubicacionId: number,
   articuloId: number,
   fecha: Date = new Date(),
 ) {
   const { inicio, fin } = limitesDelDia(fecha);
-
-  const existente = await prisma.lote.findFirst({
-    where: {
-      ubicacionId,
-      articuloId,
-      estado: "ABIERTO",
-      fecha: { gte: inicio, lt: fin },
-    },
-  });
-  if (existente) return existente;
 
   for (let intento = 0; intento < 3; intento++) {
     const consecutivoHoy = await prisma.lote.count({
@@ -59,14 +52,23 @@ export async function obtenerOCrearLoteDelDia(
 }
 
 // Lotes con saldo disponible para vender (comprado - ya asignado a ventas).
-export async function lotesConDisponible(articuloId?: number) {
+// Una compra CANCELADA nunca aportó material real, así que no cuenta como
+// "comprado" — ver actualizarEstadoLote para el mismo criterio.
+export async function lotesConDisponible(articuloId?: number, ubicacionId?: number) {
   const lotes = await prisma.lote.findMany({
-    where: { estado: "ABIERTO", ...(articuloId ? { articuloId } : {}) },
+    where: {
+      estado: "ABIERTO",
+      ...(articuloId ? { articuloId } : {}),
+      ...(ubicacionId ? { ubicacionId } : {}),
+    },
     orderBy: { fecha: "desc" },
     include: {
       ubicacion: true,
       articulo: true,
-      compras: { select: { pesaje: { select: { netoKg: true } } } },
+      compras: {
+        where: { estado: { not: "CANCELADA" } },
+        select: { pesaje: { select: { netoKg: true } } },
+      },
       movimientos: { select: { pesoAsignadoKg: true } },
     },
   });
@@ -84,4 +86,39 @@ export async function lotesConDisponible(articuloId?: number) {
       return { ...lote, comprado, disponible: comprado - asignado };
     })
     .filter((lote) => lote.disponible > 0);
+}
+
+// Recalcula si un lote sigue teniendo saldo para vender y refleja eso en su
+// estado (y en el de sus compras, que ahora siguen al lote): se cierra en
+// cuanto una venta consume lo último que quedaba, y se reabre si esa venta
+// se elimina. Si el lote todavía no tiene ninguna compra registrada (recién
+// creado al cerrar el pesaje en báscula), se queda ABIERTO — cerrarlo ahí
+// sería confundir "sin comprar todavía" con "ya se vendió todo".
+export async function actualizarEstadoLote(loteId: number) {
+  const lote = await prisma.lote.findUnique({
+    where: { id: loteId },
+    select: {
+      compras: {
+        where: { estado: { not: "CANCELADA" } },
+        select: { id: true, pesaje: { select: { netoKg: true } } },
+      },
+      movimientos: { select: { pesoAsignadoKg: true } },
+    },
+  });
+  if (!lote) return;
+
+  const comprado = lote.compras.reduce((s, c) => s + Number(c.pesaje.netoKg ?? 0), 0);
+  const asignado = lote.movimientos.reduce((s, m) => s + Number(m.pesoAsignadoKg), 0);
+  const cerrado = comprado > 0 && comprado - asignado <= 0;
+
+  await prisma.$transaction([
+    prisma.lote.update({
+      where: { id: loteId },
+      data: { estado: cerrado ? "CERRADO" : "ABIERTO" },
+    }),
+    prisma.compra.updateMany({
+      where: { id: { in: lote.compras.map((c) => c.id) } },
+      data: { estado: cerrado ? "CERRADA" : "ABIERTA" },
+    }),
+  ]);
 }

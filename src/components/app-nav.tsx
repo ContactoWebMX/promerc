@@ -22,7 +22,7 @@ function NavLinkItem({
     <Link
       href={href}
       onClick={onClick}
-      className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+      className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors ${
         active
           ? "bg-primary/10 text-primary"
           : "text-foreground hover:bg-border/50"
@@ -33,15 +33,40 @@ function NavLinkItem({
   );
 }
 
+function UbicacionChip({ ubicacion }: { ubicacion?: string }) {
+  if (!ubicacion) return null;
+  return (
+    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+      {ubicacion}
+    </span>
+  );
+}
+
+function BuscarForm({ className = "" }: { className?: string }) {
+  return (
+    <form action="/buscar" method="get" className={className}>
+      <input
+        type="search"
+        name="q"
+        placeholder="Buscar folio…"
+        aria-label="Buscar por folio de ticket o lote"
+        className="min-h-11 w-full rounded-md border border-border bg-background px-3 text-sm sm:w-40"
+      />
+    </form>
+  );
+}
+
 export function AppNav({
   links,
   usuarioNombre,
   usuarioRole,
+  usuarioUbicacion,
   logoutAction,
 }: {
   links: NavLink[];
   usuarioNombre: string;
   usuarioRole: string;
+  usuarioUbicacion?: string;
   logoutAction: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -51,7 +76,10 @@ export function AppNav({
     <header className="border-b border-border bg-surface">
       <div className="flex items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center text-lg font-semibold tracking-tight"
+          >
             PROMERC
           </Link>
           <nav className="hidden items-center gap-1 sm:flex">
@@ -66,10 +94,12 @@ export function AppNav({
           </nav>
         </div>
 
-        <div className="hidden items-center gap-4 sm:flex">
+        <div className="hidden items-center gap-3 sm:flex">
+          {usuarioRole !== "CLIENTE" && <BuscarForm />}
           <span className="text-sm text-muted">
             {usuarioNombre} · {usuarioRole}
           </span>
+          <UbicacionChip ubicacion={usuarioUbicacion} />
           <form action={logoutAction}>
             <button type="submit" className={buttonClass("secondary", "sm")}>
               Salir
@@ -82,7 +112,7 @@ export function AppNav({
           onClick={() => setOpen((v) => !v)}
           aria-label="Abrir menú"
           aria-expanded={open}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-border sm:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-md border border-border sm:hidden"
         >
           <span className="sr-only">Menú</span>
           {open ? (
@@ -110,10 +140,16 @@ export function AppNav({
               />
             ))}
           </nav>
-          <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-            <span className="text-sm text-muted">
-              {usuarioNombre} · {usuarioRole}
-            </span>
+          {usuarioRole !== "CLIENTE" && (
+            <BuscarForm className="mt-3 border-t border-border pt-3" />
+          )}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted">
+                {usuarioNombre} · {usuarioRole}
+              </span>
+              <UbicacionChip ubicacion={usuarioUbicacion} />
+            </div>
             <form action={logoutAction}>
               <button type="submit" className={buttonClass("secondary", "sm")}>
                 Salir

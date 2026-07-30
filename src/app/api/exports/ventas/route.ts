@@ -2,12 +2,21 @@ import { getCurrentUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { buildWorkbook } from "@/lib/export/excel";
 
-export async function GET() {
+export async function GET(request: Request) {
   const usuario = await getCurrentUser();
   const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
 
+  const { searchParams } = new URL(request.url);
+  const desde = searchParams.get("desde");
+  const hasta = searchParams.get("hasta");
+
   const ventas = await prisma.venta.findMany({
-    where: soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : undefined,
+    where: {
+      ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
+      ...(desde && hasta
+        ? { createdAt: { gte: new Date(`${desde}T00:00:00`), lte: new Date(`${hasta}T23:59:59`) } }
+        : {}),
+    },
     include: { cliente: true, articulo: true, ubicacion: true },
     orderBy: { createdAt: "desc" },
   });
@@ -19,7 +28,7 @@ export async function GET() {
     Articulo: v.articulo.nombre,
     Vendido_kg: Number(v.pesoVendidoKg),
     Reportado_cliente_kg: v.pesoReportadoClienteKg ? Number(v.pesoReportadoClienteKg) : "",
-    Penalizacion_kg: Number(v.penalizacionKg),
+    Diferencia_kg: Number(v.diferenciaKg),
     Precio_kg: Number(v.precioUnitarioKg),
     Importe: Number(v.importeTotal),
     Tolerancia_excedida: v.toleranciaExcedida ? "Sí" : "No",
