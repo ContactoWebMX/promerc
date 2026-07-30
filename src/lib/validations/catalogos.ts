@@ -11,13 +11,19 @@ const nombreRfcTelefonoSchema = z.object({
   rfc: z.string().trim().nullish(),
   telefono: z.string().trim().nullish(),
 });
-export const proveedorSchema = nombreRfcTelefonoSchema;
-export const clienteSchema = nombreRfcTelefonoSchema;
+export const proveedorSchema = nombreRfcTelefonoSchema.extend({
+  netsuiteVendorId: z.string().trim().nullish(),
+});
+export const clienteSchema = nombreRfcTelefonoSchema.extend({
+  netsuiteCustomerId: z.string().trim().nullish(),
+});
 
 const nombreSchema = z.object({
   nombre: z.string().min(1, { error: "Requerido" }).trim(),
 });
-export const articuloSchema = nombreSchema;
+export const articuloSchema = nombreSchema.extend({
+  netsuiteItemId: z.string().trim().nullish(),
+});
 export const unidadEmpaqueSchema = nombreSchema;
 
 export const usuarioSchema = z.object({

@@ -32,6 +32,7 @@ export default async function ProveedorFormPage({
                 nombre: proveedor.nombre,
                 rfc: proveedor.rfc ?? "",
                 telefono: proveedor.telefono ?? "",
+                netsuiteVendorId: proveedor.netsuiteVendorId ?? "",
               }
             : undefined
         }
@@ -39,6 +40,11 @@ export default async function ProveedorFormPage({
           { name: "nombre", label: "Nombre", required: true },
           { name: "rfc", label: "RFC" },
           { name: "telefono", label: "Teléfono" },
+          {
+            name: "netsuiteVendorId",
+            label: "ID de Vendor en NetSuite",
+            helpText: "Opcional. Necesario para enviar sus Compras a NetSuite.",
+          },
         ]}
       />
     </div>

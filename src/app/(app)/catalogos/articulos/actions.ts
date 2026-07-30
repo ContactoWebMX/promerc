@@ -16,21 +16,23 @@ export async function saveArticulo(
 
   const validated = articuloSchema.safeParse({
     nombre: formData.get("nombre"),
+    netsuiteItemId: formData.get("netsuiteItemId"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
   }
 
   const id = formData.get("id");
+  const data = {
+    nombre: validated.data.nombre,
+    netsuiteItemId: validated.data.netsuiteItemId || null,
+  };
 
   try {
     if (id) {
-      await prisma.articulo.update({
-        where: { id: Number(id) },
-        data: validated.data,
-      });
+      await prisma.articulo.update({ where: { id: Number(id) }, data });
     } else {
-      await prisma.articulo.create({ data: validated.data });
+      await prisma.articulo.create({ data });
     }
   } catch (error) {
     if (isUniqueConstraintError(error)) {

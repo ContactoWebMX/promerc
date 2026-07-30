@@ -26,8 +26,19 @@ export default async function ArticuloFormPage({
         action={saveArticulo}
         submitLabel={isNew ? "Crear" : "Guardar"}
         hiddenId={articulo?.id}
-        defaultValues={articulo ? { nombre: articulo.nombre } : undefined}
-        fields={[{ name: "nombre", label: "Nombre", required: true }]}
+        defaultValues={
+          articulo
+            ? { nombre: articulo.nombre, netsuiteItemId: articulo.netsuiteItemId ?? "" }
+            : undefined
+        }
+        fields={[
+          { name: "nombre", label: "Nombre", required: true },
+          {
+            name: "netsuiteItemId",
+            label: "ID de Item en NetSuite",
+            helpText: "Opcional. Artículo inventariable en NetSuite, sin lotificación.",
+          },
+        ]}
       />
     </div>
   );

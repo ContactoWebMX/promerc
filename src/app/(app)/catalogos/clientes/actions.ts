@@ -17,6 +17,7 @@ export async function saveCliente(
     nombre: formData.get("nombre"),
     rfc: formData.get("rfc"),
     telefono: formData.get("telefono"),
+    netsuiteCustomerId: formData.get("netsuiteCustomerId"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -27,6 +28,7 @@ export async function saveCliente(
     nombre: validated.data.nombre,
     rfc: validated.data.rfc || null,
     telefono: validated.data.telefono || null,
+    netsuiteCustomerId: validated.data.netsuiteCustomerId || null,
   };
 
   if (id) {

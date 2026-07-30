@@ -32,6 +32,7 @@ export default async function ClienteFormPage({
                 nombre: cliente.nombre,
                 rfc: cliente.rfc ?? "",
                 telefono: cliente.telefono ?? "",
+                netsuiteCustomerId: cliente.netsuiteCustomerId ?? "",
               }
             : undefined
         }
@@ -39,6 +40,11 @@ export default async function ClienteFormPage({
           { name: "nombre", label: "Nombre", required: true },
           { name: "rfc", label: "RFC" },
           { name: "telefono", label: "Teléfono" },
+          {
+            name: "netsuiteCustomerId",
+            label: "ID de Customer en NetSuite",
+            helpText: "Opcional. Necesario para enviar sus Ventas a NetSuite.",
+          },
         ]}
       />
     </div>

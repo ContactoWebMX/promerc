@@ -17,6 +17,7 @@ export async function saveProveedor(
     nombre: formData.get("nombre"),
     rfc: formData.get("rfc"),
     telefono: formData.get("telefono"),
+    netsuiteVendorId: formData.get("netsuiteVendorId"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -27,6 +28,7 @@ export async function saveProveedor(
     nombre: validated.data.nombre,
     rfc: validated.data.rfc || null,
     telefono: validated.data.telefono || null,
+    netsuiteVendorId: validated.data.netsuiteVendorId || null,
   };
 
   if (id) {
