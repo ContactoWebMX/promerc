@@ -8,6 +8,7 @@ import { registrarAuditLog } from "@/lib/audit";
 import { actualizarEstadoLote } from "@/lib/lote";
 import { corregirCompraSchema, anularCompraSchema } from "@/lib/validations/compras";
 import type { CatalogFormState } from "@/components/catalog-form";
+import { crearOrdenCompra } from "@/lib/netsuite";
 
 export async function corregirCompra(
   _state: CatalogFormState,
@@ -136,5 +137,69 @@ export async function anularCompra(
 
   revalidatePath(`/compras/${id}`);
   revalidatePath("/compras");
+  redirect(`/compras/${id}`);
+}
+
+export async function enviarCompraANetSuite(
+  _state: CatalogFormState,
+  formData: FormData,
+): Promise<CatalogFormState> {
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
+
+  const id = Number(formData.get("id"));
+  const compra = await prisma.compra.findUnique({
+    where: { id },
+    include: { proveedor: true, pesaje: { include: { articulo: true } } },
+  });
+  if (!compra) return { message: "Compra no encontrada." };
+  if (compra.estado === "CANCELADA") {
+    return { message: "No se puede enviar a NetSuite una compra cancelada." };
+  }
+  if (compra.netsuiteOrderId) {
+    return { message: "Esta compra ya fue enviada a NetSuite." };
+  }
+  if (!compra.proveedor.netsuiteVendorId) {
+    return {
+      message: `Falta configurar el ID de NetSuite del proveedor "${compra.proveedor.nombre}".`,
+    };
+  }
+  if (!compra.pesaje.articulo?.netsuiteItemId) {
+    return {
+      message: `Falta configurar el ID de NetSuite del artículo "${compra.pesaje.articulo?.nombre ?? ""}".`,
+    };
+  }
+
+  let orden: { id: string; tranId: string };
+  try {
+    orden = await crearOrdenCompra({
+      netsuiteVendorId: compra.proveedor.netsuiteVendorId,
+      netsuiteItemId: compra.pesaje.articulo.netsuiteItemId,
+      netoKg: Number(compra.pesaje.netoKg ?? 0),
+      precioUnitarioKg: Number(compra.precioUnitarioKg),
+    });
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Error al enviar la compra a NetSuite.",
+    };
+  }
+
+  await prisma.compra.update({
+    where: { id },
+    data: {
+      netsuiteOrderId: orden.id,
+      netsuiteOrderNumber: orden.tranId,
+      netsuiteSyncedAt: new Date(),
+    },
+  });
+
+  await registrarAuditLog({
+    entidad: "Compra",
+    entidadId: id,
+    accion: "COMPRA_ENVIADA_NETSUITE",
+    usuarioId: usuario.id,
+    detalleNuevo: { netsuiteOrderId: orden.id, netsuiteOrderNumber: orden.tranId },
+  });
+
+  revalidatePath(`/compras/${id}`);
   redirect(`/compras/${id}`);
 }

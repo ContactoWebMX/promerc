@@ -10,7 +10,7 @@ import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { CatalogForm } from "@/components/catalog-form";
 import { Traza } from "@/components/ui/traza";
 import { trazaDesdePesaje } from "@/lib/traza";
-import { corregirCompra, eliminarCompra, anularCompra } from "./actions";
+import { corregirCompra, eliminarCompra, anularCompra, enviarCompraANetSuite } from "./actions";
 
 const ESTADO_CONFIG: Record<string, { label: string; tone: EstadoTone }> = {
   ABIERTA: { label: "Abierta", tone: "neutral" },
@@ -42,6 +42,12 @@ export default async function CompraDetailPage({
     compra.lote?.movimientos.reduce((s, m) => s + Number(m.pesoAsignadoKg), 0) ?? 0;
   const puedeAnularOEliminar =
     usuario.role === "ADMIN" && asignado === 0 && compra.estado !== "CANCELADA";
+  const puedeEnviarANetSuite =
+    (usuario.role === "ADMIN" || usuario.role === "SUPERVISOR") &&
+    compra.estado !== "CANCELADA" &&
+    !compra.netsuiteOrderId;
+  const faltaMapeoNetSuite =
+    !compra.proveedor.netsuiteVendorId || !compra.pesaje.articulo?.netsuiteItemId;
   const traza = await trazaDesdePesaje(compra.pesajeId);
 
   return (
@@ -80,8 +86,35 @@ export default async function CompraDetailPage({
               "—"
             )}
           </dd>
+          <dt className="text-muted">NetSuite</dt>
+          <dd>
+            {compra.netsuiteOrderId ? (
+              <EstadoBadge label={`Enviada — ${compra.netsuiteOrderNumber}`} tone="positive" />
+            ) : (
+              "—"
+            )}
+          </dd>
         </dl>
       </Card>
+
+      {puedeEnviarANetSuite && (
+        <Card>
+          {faltaMapeoNetSuite ? (
+            <p className="text-sm text-muted">
+              Falta configurar el ID de NetSuite del proveedor o del artículo antes de poder
+              enviar esta compra como Orden de Compra.
+            </p>
+          ) : (
+            <CatalogForm
+              action={enviarCompraANetSuite}
+              submitLabel="Enviar a NetSuite"
+              hiddenId={compra.id}
+              confirmMessage={`¿Enviar esta compra como Orden de Compra a NetSuite? Proveedor ${compra.proveedor.nombre}, importe $${compra.importeTotal.toString()}.`}
+              fields={[]}
+            />
+          )}
+        </Card>
+      )}
 
       {usuario.role === "ADMIN" && (
         <div className="flex flex-wrap items-center gap-2">
