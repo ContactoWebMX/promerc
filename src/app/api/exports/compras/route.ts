@@ -14,7 +14,12 @@ export async function GET(request: Request) {
     where: {
       ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
       ...(desde && hasta
-        ? { createdAt: { gte: new Date(`${desde}T00:00:00`), lte: new Date(`${hasta}T23:59:59`) } }
+        ? {
+            fechaOperacion: {
+              gte: new Date(`${desde}T00:00:00`),
+              lte: new Date(`${hasta}T23:59:59`),
+            },
+          }
         : {}),
     },
     include: {
@@ -23,11 +28,11 @@ export async function GET(request: Request) {
       ubicacion: true,
       lote: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { fechaOperacion: "desc" },
   });
 
   const rows = compras.map((c) => ({
-    Fecha: c.createdAt.toLocaleDateString("es-MX"),
+    Fecha: c.fechaOperacion.toLocaleDateString("es-MX"),
     Folio_Ticket: c.pesaje.folioTicket,
     Ubicacion: c.ubicacion.nombre,
     Proveedor: c.proveedor.nombre,

@@ -10,19 +10,24 @@ export async function GET(request: Request) {
   const desde = searchParams.get("desde");
   const hasta = searchParams.get("hasta");
 
+  const rangoFecha =
+    desde && hasta
+      ? { gte: new Date(`${desde}T00:00:00`), lte: new Date(`${hasta}T23:59:59`) }
+      : undefined;
+
   const ventas = await prisma.venta.findMany({
     where: {
       ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
-      ...(desde && hasta
-        ? { createdAt: { gte: new Date(`${desde}T00:00:00`), lte: new Date(`${hasta}T23:59:59`) } }
+      ...(rangoFecha
+        ? { OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, createdAt: rangoFecha }] }
         : {}),
     },
     include: { cliente: true, articulo: true, ubicacion: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { pesoReportadoEn: { sort: "desc", nulls: "last" } },
   });
 
   const rows = ventas.map((v) => ({
-    Fecha: v.createdAt.toLocaleDateString("es-MX"),
+    Fecha: (v.pesoReportadoEn ?? v.createdAt).toLocaleDateString("es-MX"),
     Ubicacion: v.ubicacion.nombre,
     Cliente: v.cliente.nombre,
     Articulo: v.articulo.nombre,

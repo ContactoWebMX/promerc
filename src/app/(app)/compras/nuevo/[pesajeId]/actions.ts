@@ -51,6 +51,9 @@ export async function crearCompra(
       loteId: pesaje.loteId,
       precioUnitarioKg: validated.data.precioUnitarioKg,
       importeTotal,
+      // Se hereda de la fecha del ticket capturada al registrar el pesaje
+      // (taraCapturadaEn) — no se vuelve a pedir aquí.
+      fechaOperacion: pesaje.taraCapturadaEn,
     },
   });
 

@@ -15,6 +15,7 @@ export const corregirCompraSchema = z.object({
   precioUnitarioKg: z.coerce
     .number({ error: "Debe ser un número." })
     .positive({ error: "Debe ser mayor a 0." }),
+  fechaOperacion: z.string().min(1, { error: "Requerido" }),
   motivo: z.string().min(1, { error: "Indica el motivo del cambio." }).trim(),
 });
 

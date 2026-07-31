@@ -39,6 +39,7 @@ export async function reportarPesoVenta(
 
   const validated = reportarPesoVentaSchema.safeParse({
     pesoReportadoClienteKg: formData.get("pesoReportadoClienteKg"),
+    pesoReportadoEn: formData.get("pesoReportadoEn"),
     motivoDiferencia: formData.get("motivoDiferencia"),
   });
   if (!validated.success) {
@@ -46,6 +47,7 @@ export async function reportarPesoVenta(
   }
 
   const { pesoReportadoClienteKg, motivoDiferencia } = validated.data;
+  const pesoReportadoEn = new Date(`${validated.data.pesoReportadoEn}T00:00:00`);
   const diferenciaKg = Number(
     (Number(venta.pesoVendidoKg) - pesoReportadoClienteKg).toFixed(2),
   );
@@ -84,6 +86,7 @@ export async function reportarPesoVenta(
         toleranciaExcedida: excede,
         estado: excede ? "PENDIENTE_APROBACION" : "CERRADA",
         reportadoPorClienteUsuarioId: usuario.id,
+        pesoReportadoEn,
       },
     }),
   ];
@@ -127,6 +130,7 @@ export async function corregirVenta(
   const validated = corregirVentaSchema.safeParse({
     precioUnitarioKg: formData.get("precioUnitarioKg"),
     pesoReportadoClienteKg: formData.get("pesoReportadoClienteKg"),
+    pesoReportadoEn: formData.get("pesoReportadoEn"),
     motivoDiferencia: formData.get("motivoDiferencia"),
     motivo: formData.get("motivo"),
   });
@@ -171,6 +175,9 @@ export async function corregirVenta(
     data.importeTotal = Number(
       (validated.data.precioUnitarioKg * pesoReportadoClienteKg).toFixed(2),
     );
+    data.pesoReportadoEn = validated.data.pesoReportadoEn
+      ? new Date(`${validated.data.pesoReportadoEn}T00:00:00`)
+      : venta.pesoReportadoEn;
   }
 
   await prisma.venta.update({ where: { id }, data });
@@ -332,7 +339,7 @@ export async function enviarVentaANetSuite(
       netsuiteItemId: venta.articulo.netsuiteItemId,
       pesoKg: Number(venta.pesoReportadoClienteKg ?? 0),
       precioUnitarioKg: Number(venta.precioUnitarioKg),
-      tranDate: venta.createdAt.toISOString().slice(0, 10),
+      tranDate: (venta.pesoReportadoEn ?? venta.createdAt).toISOString().slice(0, 10),
       employeeId: usuario.netsuiteEmployeeId,
       locationId: venta.ubicacion.netsuiteLocationId,
       departmentId: centroAprobacion.netsuiteId,

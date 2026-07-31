@@ -211,7 +211,11 @@ export default async function PesajeDetailPage({
       )}
 
       {pesaje.estado === "CARGA_REGISTRADA" && (
-        <CerrarPesajeForm pesajeId={pesaje.id} taraKg={pesaje.taraKg.toString()} />
+        <CerrarPesajeForm
+          pesajeId={pesaje.id}
+          taraKg={pesaje.taraKg.toString()}
+          fechaHoy={new Date().toISOString().slice(0, 10)}
+        />
       )}
 
       {(pesaje.estado === "TARA_CAPTURADA" ||

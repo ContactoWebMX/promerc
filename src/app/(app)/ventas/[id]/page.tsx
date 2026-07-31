@@ -121,6 +121,8 @@ export default async function VentaDetailPage({
           </dd>
           {venta.pesoReportadoClienteKg && (
             <>
+              <dt className="text-muted">Fecha de operación</dt>
+              <dd>{venta.pesoReportadoEn?.toLocaleDateString("es-MX") ?? "—"}</dd>
               <dt className="text-muted">Peso reportado por cliente</dt>
               <dd>{venta.pesoReportadoClienteKg.toString()} kg</dd>
               <dt className="text-muted">Diferencia</dt>
@@ -196,6 +198,7 @@ export default async function VentaDetailPage({
           ventaId={venta.id}
           pesoVendidoKg={venta.pesoVendidoKg.toString()}
           umbralPct={umbralPct}
+          fechaHoy={new Date().toISOString().slice(0, 10)}
         />
       )}
 
@@ -261,6 +264,7 @@ export default async function VentaDetailPage({
               defaultValues={{
                 precioUnitarioKg: venta.precioUnitarioKg.toString(),
                 pesoReportadoClienteKg: venta.pesoReportadoClienteKg?.toString() ?? "",
+                pesoReportadoEn: venta.pesoReportadoEn?.toISOString().slice(0, 10) ?? "",
                 motivoDiferencia: venta.motivoDiferencia ?? "",
               }}
               fields={[
@@ -280,6 +284,12 @@ export default async function VentaDetailPage({
                         type: "number" as const,
                         min: 0,
                         step: 0.01,
+                      },
+                      {
+                        name: "pesoReportadoEn",
+                        label: "Fecha de operación",
+                        type: "date" as const,
+                        helpText: "Fecha real en que se reportó el peso — se usa también al enviar a NetSuite.",
                       },
                       {
                         name: "motivoDiferencia",

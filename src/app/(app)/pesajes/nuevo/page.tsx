@@ -25,6 +25,7 @@ export default async function NuevoPesajePage() {
         proveedores={proveedores}
         transportistas={transportistas}
         ubicacionDefaultId={usuario.ubicacionId?.toString() ?? ""}
+        fechaHoy={new Date().toISOString().slice(0, 10)}
       />
     </div>
   );

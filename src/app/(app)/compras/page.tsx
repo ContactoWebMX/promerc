@@ -52,7 +52,7 @@ function ordenarPor(sort: string, dir: "asc" | "desc"): Prisma.CompraOrderByWith
     case "estado":
       return { estado: dir };
     default:
-      return { createdAt: dir };
+      return { fechaOperacion: dir };
   }
 }
 
@@ -80,7 +80,7 @@ export default async function ComprasPage({
 
   const where: Prisma.CompraWhereInput = {
     ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
-    createdAt: { gte: desde, lte: hasta },
+    fechaOperacion: { gte: desde, lte: hasta },
   };
 
   const [compras, total] = await Promise.all([
@@ -186,7 +186,7 @@ export default async function ComprasPage({
         <tbody>
           {compras.map((c) => (
             <tr key={c.id} className={trClass}>
-              <td className={tdClass}>{c.createdAt.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass}>{c.fechaOperacion.toLocaleDateString("es-MX")}</td>
               <td className={tdClass}>{c.pesaje.folioTicket}</td>
               <td className={tdClass}>
                 <EstadoBadge

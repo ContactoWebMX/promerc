@@ -24,7 +24,7 @@ function agruparOpciones(options: Option[]): Map<string | undefined, Option[]> {
 type FieldConfig = {
   name: string;
   label: string;
-  type?: "text" | "email" | "password" | "number" | "select" | "combobox";
+  type?: "text" | "email" | "password" | "number" | "date" | "select" | "combobox";
   required?: boolean;
   options?: Option[];
   helpText?: string;

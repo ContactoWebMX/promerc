@@ -25,6 +25,7 @@ export async function corregirCompra(
 
   const validated = corregirCompraSchema.safeParse({
     precioUnitarioKg: formData.get("precioUnitarioKg"),
+    fechaOperacion: formData.get("fechaOperacion"),
     motivo: formData.get("motivo"),
   });
   if (!validated.success) {
@@ -33,10 +34,11 @@ export async function corregirCompra(
 
   const netoKg = Number(compra.pesaje.netoKg ?? 0);
   const importeTotal = Number((validated.data.precioUnitarioKg * netoKg).toFixed(2));
+  const fechaOperacion = new Date(`${validated.data.fechaOperacion}T00:00:00`);
 
   await prisma.compra.update({
     where: { id },
-    data: { precioUnitarioKg: validated.data.precioUnitarioKg, importeTotal },
+    data: { precioUnitarioKg: validated.data.precioUnitarioKg, importeTotal, fechaOperacion },
   });
 
   await registrarAuditLog({
@@ -47,8 +49,13 @@ export async function corregirCompra(
     detalleAnterior: {
       precioUnitarioKg: compra.precioUnitarioKg.toString(),
       importeTotal: compra.importeTotal.toString(),
+      fechaOperacion: compra.fechaOperacion.toISOString(),
     },
-    detalleNuevo: { precioUnitarioKg: validated.data.precioUnitarioKg, importeTotal },
+    detalleNuevo: {
+      precioUnitarioKg: validated.data.precioUnitarioKg,
+      importeTotal,
+      fechaOperacion: fechaOperacion.toISOString(),
+    },
     motivo: validated.data.motivo,
   });
 
@@ -194,7 +201,7 @@ export async function enviarCompraANetSuite(
       netsuiteItemId: compra.pesaje.articulo.netsuiteItemId,
       netoKg: Number(compra.pesaje.netoKg ?? 0),
       precioUnitarioKg: Number(compra.precioUnitarioKg),
-      tranDate: compra.createdAt.toISOString().slice(0, 10),
+      tranDate: compra.fechaOperacion.toISOString().slice(0, 10),
       employeeId: usuario.netsuiteEmployeeId,
       locationId: compra.ubicacion.netsuiteLocationId,
       departmentId: centroAprobacion.netsuiteId,

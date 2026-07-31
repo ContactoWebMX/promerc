@@ -50,7 +50,7 @@ function ordenarPor(sort: string, dir: "asc" | "desc"): Prisma.PesajeOrderByWith
     case "estado":
       return { estado: dir };
     default:
-      return { createdAt: dir };
+      return { taraCapturadaEn: dir };
   }
 }
 
@@ -78,7 +78,7 @@ export default async function PesajesPage({
 
   const where: Prisma.PesajeWhereInput = {
     ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
-    createdAt: { gte: desde, lte: hasta },
+    taraCapturadaEn: { gte: desde, lte: hasta },
   };
 
   const [pesajes, total] = await Promise.all([
@@ -187,7 +187,7 @@ export default async function PesajesPage({
         <tbody>
           {pesajes.map((p) => (
             <tr key={p.id} className={trClass}>
-              <td className={tdClass}>{p.createdAt.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass}>{p.taraCapturadaEn.toLocaleDateString("es-MX")}</td>
               <td className={tdClass}>{p.folioTicket}</td>
               <td className={tdClass}>
                 <EstadoBadge

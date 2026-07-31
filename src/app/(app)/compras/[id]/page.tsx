@@ -57,6 +57,8 @@ export default async function CompraDetailPage({
       {traza && <Traza traza={traza} actual={{ tipo: "compra", id: compra.id }} />}
       <Card>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <dt className="text-muted">Fecha de operación</dt>
+          <dd>{compra.fechaOperacion.toLocaleDateString("es-MX")}</dd>
           <dt className="text-muted">Proveedor</dt>
           <dd>{compra.proveedor.nombre}</dd>
           <dt className="text-muted">Ubicación</dt>
@@ -137,6 +139,7 @@ export default async function CompraDetailPage({
                 hiddenId={compra.id}
                 defaultValues={{
                   precioUnitarioKg: compra.precioUnitarioKg.toString(),
+                  fechaOperacion: compra.fechaOperacion.toISOString().slice(0, 10),
                 }}
                 fields={[
                   {
@@ -146,6 +149,13 @@ export default async function CompraDetailPage({
                     required: true,
                     min: 0,
                     step: 0.01,
+                  },
+                  {
+                    name: "fechaOperacion",
+                    label: "Fecha de operación",
+                    type: "date",
+                    required: true,
+                    helpText: "Fecha real de la compra (ticket) — se usa también al enviar a NetSuite.",
                   },
                   { name: "motivo", label: "Motivo de la corrección", required: true },
                 ]}

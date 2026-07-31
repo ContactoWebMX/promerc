@@ -13,7 +13,15 @@ import { cerrarPesaje, leerTicketConIA, type CerrarPesajeState } from "./actions
 
 // Paso 2 del cierre: se llena al pasar por báscula, cuando ya se conoce el
 // peso real — artículo, pacas y destino ya se registraron en "salida".
-export function CerrarPesajeForm({ pesajeId, taraKg }: { pesajeId: number; taraKg: string }) {
+export function CerrarPesajeForm({
+  pesajeId,
+  taraKg,
+  fechaHoy,
+}: {
+  pesajeId: number;
+  taraKg: string;
+  fechaHoy: string;
+}) {
   const [state, action, pending] = useActionState<CerrarPesajeState, FormData>(
     cerrarPesaje,
     undefined,
@@ -55,8 +63,8 @@ export function CerrarPesajeForm({ pesajeId, taraKg }: { pesajeId: number; taraK
     if (datos.observaciones && observacionesRef.current) {
       observacionesRef.current.value = datos.observaciones;
     }
-    if (fechaTicketRef.current) fechaTicketRef.current.value = datos.fecha ?? "";
-    if (horaTicketRef.current) horaTicketRef.current.value = datos.hora ?? "";
+    if (datos.fecha && fechaTicketRef.current) fechaTicketRef.current.value = datos.fecha;
+    if (datos.hora && horaTicketRef.current) horaTicketRef.current.value = datos.hora;
   }
 
   // Si Claude no respondió (sin señal, sin API key, lo que sea), se lee el
@@ -78,8 +86,6 @@ export function CerrarPesajeForm({ pesajeId, taraKg }: { pesajeId: number; taraK
     <Card className="max-w-md">
       <form action={action} className="flex flex-col gap-5">
         <input type="hidden" name="id" value={pesajeId} />
-        <input type="hidden" name="fechaTicket" ref={fechaTicketRef} />
-        <input type="hidden" name="horaTicket" ref={horaTicketRef} />
 
         <div>
           <h2 className="font-semibold">Cerrar pesaje — báscula</h2>
@@ -166,6 +172,38 @@ export function CerrarPesajeForm({ pesajeId, taraKg }: { pesajeId: number; taraK
               className={inputClass}
             />
           </div>
+
+          <div className="flex gap-3">
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="fechaTicket" className={labelClass}>
+                Fecha del ticket
+              </label>
+              <input
+                id="fechaTicket"
+                name="fechaTicket"
+                type="date"
+                required
+                defaultValue={fechaHoy}
+                ref={fechaTicketRef}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="horaTicket" className={labelClass}>
+                Hora del ticket
+              </label>
+              <input
+                id="horaTicket"
+                name="horaTicket"
+                type="time"
+                ref={horaTicketRef}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted">
+            Precargada con hoy — ajústala si el ticket físico llegó días después de pesar.
+          </p>
         </FormSection>
 
         {state?.message && <p className="text-sm text-danger">{state.message}</p>}

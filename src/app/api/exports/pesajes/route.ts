@@ -21,15 +21,20 @@ export async function GET(request: Request) {
     where: {
       ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
       ...(desde && hasta
-        ? { createdAt: { gte: new Date(`${desde}T00:00:00`), lte: new Date(`${hasta}T23:59:59`) } }
+        ? {
+            taraCapturadaEn: {
+              gte: new Date(`${desde}T00:00:00`),
+              lte: new Date(`${hasta}T23:59:59`),
+            },
+          }
         : {}),
     },
     include: { ubicacion: true, proveedor: true, articulo: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { taraCapturadaEn: "desc" },
   });
 
   const rows = pesajes.map((p) => ({
-    Fecha: p.createdAt.toLocaleDateString("es-MX"),
+    Fecha: p.taraCapturadaEn.toLocaleDateString("es-MX"),
     Folio_Ticket: p.folioTicket,
     Ubicacion: p.ubicacion.nombre,
     Proveedor: p.proveedor.nombre,

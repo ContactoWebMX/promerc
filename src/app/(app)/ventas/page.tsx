@@ -37,7 +37,7 @@ function ordenarPor(sort: string, dir: "asc" | "desc"): Prisma.VentaOrderByWithR
     case "importe":
       return { importeTotal: dir };
     default:
-      return { createdAt: dir };
+      return { pesoReportadoEn: { sort: dir, nulls: "last" } };
   }
 }
 
@@ -63,9 +63,13 @@ export default async function VentasPage({
   const perPage = resolverPorPagina(params.perPage);
   const pagina = Math.max(1, Number(params.page) || 1);
 
+  // Filtra por pesoReportadoEn (fecha real de la operación); las ventas
+  // todavía en Borrador no la tienen, así que para esas se usa createdAt —
+  // de lo contrario un filtro de fecha las escondería de la lista.
+  const rangoFecha = { gte: desde, lte: hasta };
   const where: Prisma.VentaWhereInput = {
     ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
-    createdAt: { gte: desde, lte: hasta },
+    OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, createdAt: rangoFecha }],
   };
 
   const [ventas, total] = await Promise.all([
@@ -168,7 +172,9 @@ export default async function VentasPage({
         <tbody>
           {ventas.map((v) => (
             <tr key={v.id} className={trClass}>
-              <td className={tdClass}>{v.createdAt.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass}>
+                {(v.pesoReportadoEn ?? v.createdAt).toLocaleDateString("es-MX")}
+              </td>
               <td className={tdClass}>{v.cliente.nombre}</td>
               <td className={tdClass}>
                 <EstadoBadge

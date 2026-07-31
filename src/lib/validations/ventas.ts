@@ -17,6 +17,7 @@ export const reportarPesoVentaSchema = z.object({
   pesoReportadoClienteKg: z.coerce
     .number({ error: "Debe ser un número." })
     .positive({ error: "Debe ser mayor a 0." }),
+  pesoReportadoEn: z.string().min(1, { error: "Requerido" }),
   motivoDiferencia: z.string().trim().nullish(),
 });
 
@@ -32,6 +33,7 @@ export const corregirVentaSchema = z.object({
     .number({ error: "Debe ser un número." })
     .positive({ error: "Debe ser mayor a 0." })
     .nullish(),
+  pesoReportadoEn: z.string().trim().nullish(),
   motivoDiferencia: z.string().trim().nullish(),
   motivo: z.string().min(1, { error: "Indica el motivo de la corrección." }).trim(),
 });

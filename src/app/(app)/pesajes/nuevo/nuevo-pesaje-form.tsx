@@ -16,11 +16,13 @@ export function NuevoPesajeForm({
   proveedores,
   transportistas,
   ubicacionDefaultId,
+  fechaHoy,
 }: {
   ubicaciones: { id: number; nombre: string }[];
   proveedores: { id: number; nombre: string }[];
   transportistas: { nombre: string; placas: string }[];
   ubicacionDefaultId: string;
+  fechaHoy: string;
 }) {
   const [state, action, pending] = useActionState<CatalogFormState, FormData>(
     crearPesaje,
@@ -64,8 +66,8 @@ export function NuevoPesajeForm({
     if (datos.pesoKg != null && taraKgRef.current) {
       taraKgRef.current.value = String(datos.pesoKg);
     }
-    if (fechaTicketRef.current) fechaTicketRef.current.value = datos.fecha ?? "";
-    if (horaTicketRef.current) horaTicketRef.current.value = datos.hora ?? "";
+    if (datos.fecha && fechaTicketRef.current) fechaTicketRef.current.value = datos.fecha;
+    if (datos.hora && horaTicketRef.current) horaTicketRef.current.value = datos.hora;
   }
 
   // Respaldo local (sin conexión a ningún servicio) cuando Claude no responde.
@@ -88,9 +90,6 @@ export function NuevoPesajeForm({
   return (
     <Card className="max-w-md">
       <form action={action} className="flex flex-col gap-5">
-        <input type="hidden" name="fechaTicket" ref={fechaTicketRef} />
-        <input type="hidden" name="horaTicket" ref={horaTicketRef} />
-
         <FormSection title="Ticket de báscula">
           <FotoInput
             id="foto"
@@ -149,6 +148,38 @@ export function NuevoPesajeForm({
               className={inputClass}
             />
           </div>
+
+          <div className="flex gap-3">
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="fechaTicket" className={labelClass}>
+                Fecha del ticket
+              </label>
+              <input
+                id="fechaTicket"
+                name="fechaTicket"
+                type="date"
+                required
+                defaultValue={fechaHoy}
+                ref={fechaTicketRef}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="horaTicket" className={labelClass}>
+                Hora del ticket
+              </label>
+              <input
+                id="horaTicket"
+                name="horaTicket"
+                type="time"
+                ref={horaTicketRef}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted">
+            Precargada con hoy — ajústala si el ticket físico llegó días después de pesar.
+          </p>
         </FormSection>
 
         <FormSection title="Camión y proveedor">

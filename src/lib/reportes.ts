@@ -57,11 +57,12 @@ export async function resumenPeriodo(
 
   const [compras, ventas, pendientes] = await Promise.all([
     prisma.compra.findMany({
-      where: { createdAt: rangoFecha, estado: { not: "CANCELADA" }, ...filtroUbicacion },
+      where: { fechaOperacion: rangoFecha, estado: { not: "CANCELADA" }, ...filtroUbicacion },
       include: { pesaje: { select: { netoKg: true } } },
     }),
+    // estado CERRADA garantiza que pesoReportadoEn ya está seteado.
     prisma.venta.findMany({
-      where: { createdAt: rangoFecha, estado: "CERRADA", ...filtroUbicacion },
+      where: { pesoReportadoEn: rangoFecha, estado: "CERRADA", ...filtroUbicacion },
     }),
     prisma.venta.count({
       where: { estado: "PENDIENTE_APROBACION", ...filtroUbicacion },
