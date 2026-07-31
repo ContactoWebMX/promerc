@@ -9,6 +9,7 @@ const catalogos = [
   { href: "/catalogos/unidades-empaque", label: "Unidades de empaque" },
   { href: "/catalogos/usuarios", label: "Usuarios" },
   { href: "/catalogos/tolerancia", label: "Tolerancia" },
+  { href: "/catalogos/centro-aprobacion", label: "Centro de Aprobación (NetSuite)" },
 ];
 
 export default function CatalogosPage() {

@@ -21,6 +21,7 @@ export async function saveUsuario(
     role: formData.get("role"),
     ubicacionId: formData.get("ubicacionId"),
     clienteId: formData.get("clienteId"),
+    netsuiteEmployeeId: formData.get("netsuiteEmployeeId"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -66,6 +67,7 @@ export async function saveUsuario(
     role: role as "ADMIN" | "SUPERVISOR" | "OPERADOR" | "CLIENTE",
     ubicacionId,
     clienteId,
+    netsuiteEmployeeId: validated.data.netsuiteEmployeeId || null,
   };
 
   try {

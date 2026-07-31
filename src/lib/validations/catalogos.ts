@@ -4,6 +4,7 @@ import { RoleUsuario } from "@/generated/prisma/enums";
 export const ubicacionSchema = z.object({
   nombre: z.string().min(1, { error: "Requerido" }).trim(),
   codigo: z.string().min(1, { error: "Requerido" }).trim(),
+  netsuiteLocationId: z.string().trim().nullish(),
 });
 
 const nombreRfcTelefonoSchema = z.object({
@@ -34,6 +35,12 @@ export const usuarioSchema = z.object({
   }),
   ubicacionId: z.string().nullish(),
   clienteId: z.string().nullish(),
+  netsuiteEmployeeId: z.string().trim().nullish(),
+});
+
+export const centroAprobacionSchema = z.object({
+  nombre: z.string().min(1, { error: "Requerido" }).trim(),
+  netsuiteId: z.string().min(1, { error: "Requerido" }).trim(),
 });
 
 export const toleranciaSchema = z.object({

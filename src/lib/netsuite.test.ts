@@ -10,7 +10,7 @@ test("percentEncode escapa los caracteres reservados de OAuth 1.0a que encodeURI
   assert.equal(percentEncode("a b!c*d'e(f)g"), "a%20b%21c%2Ad%27e%28f%29g");
 });
 
-test("construirPayloadOrdenCompra arma entity/subsidiary/item y no incluye lote", () => {
+test("construirPayloadOrdenCompra arma entity/subsidiary/employee/location/department/item y no incluye lote", () => {
   const payload = construirPayloadOrdenCompra({
     netsuiteVendorId: "123",
     netsuiteItemId: "456",
@@ -18,12 +18,19 @@ test("construirPayloadOrdenCompra arma entity/subsidiary/item y no incluye lote"
     precioUnitarioKg: 3.5,
     subsidiaryId: "14",
     tranDate: "2026-07-29",
+    employeeId: "9312",
+    locationId: "77",
+    departmentId: "50",
   });
 
   assert.deepEqual(payload, {
     entity: { id: "123" },
     subsidiary: { id: "14" },
     tranDate: "2026-07-29",
+    dueDate: "2026-07-29",
+    employee: { id: "9312" },
+    location: { id: "77" },
+    department: { id: "50" },
     item: {
       items: [{ item: { id: "456" }, quantity: 980.5, rate: 3.5 }],
     },
@@ -33,7 +40,7 @@ test("construirPayloadOrdenCompra arma entity/subsidiary/item y no incluye lote"
   assert.equal(json.includes("lot"), false);
 });
 
-test("construirPayloadOrdenVenta arma entity/subsidiary/item y no incluye lote", () => {
+test("construirPayloadOrdenVenta arma entity/subsidiary/employee/location/department/item y no incluye lote", () => {
   const payload = construirPayloadOrdenVenta({
     netsuiteCustomerId: "789",
     netsuiteItemId: "456",
@@ -41,12 +48,19 @@ test("construirPayloadOrdenVenta arma entity/subsidiary/item y no incluye lote",
     precioUnitarioKg: 4.2,
     subsidiaryId: "14",
     tranDate: "2026-07-29",
+    employeeId: "9312",
+    locationId: "77",
+    departmentId: "50",
   });
 
   assert.deepEqual(payload, {
     entity: { id: "789" },
     subsidiary: { id: "14" },
     tranDate: "2026-07-29",
+    dueDate: "2026-07-29",
+    employee: { id: "9312" },
+    location: { id: "77" },
+    department: { id: "50" },
     item: {
       items: [{ item: { id: "456" }, quantity: 500, rate: 4.2 }],
     },

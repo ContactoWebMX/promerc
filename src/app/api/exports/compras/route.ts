@@ -37,6 +37,7 @@ export async function GET(request: Request) {
     Importe: Number(c.importeTotal),
     Lote: c.lote?.folio ?? "",
     Estado: c.estado,
+    Folio_NetSuite: c.netsuiteOrderNumber ?? (c.netsuiteOrderId ? "Enviada" : ""),
   }));
 
   const buffer = buildWorkbook([{ name: "Compras", rows }]);

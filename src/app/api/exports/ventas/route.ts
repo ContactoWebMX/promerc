@@ -33,6 +33,7 @@ export async function GET(request: Request) {
     Importe: Number(v.importeTotal),
     Tolerancia_excedida: v.toleranciaExcedida ? "Sí" : "No",
     Estado: v.estado,
+    Folio_NetSuite: v.netsuiteOrderNumber ?? (v.netsuiteOrderId ? "Enviada" : ""),
   }));
 
   const buffer = buildWorkbook([{ name: "Ventas", rows }]);

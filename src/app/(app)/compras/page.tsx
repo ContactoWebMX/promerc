@@ -179,6 +179,7 @@ export default async function ComprasPage({
             <SortableHeader label="Precio/kg" field="precio" {...sortableProps} />
             <SortableHeader label="Importe" field="importe" {...sortableProps} />
             <SortableHeader label="Lote" field="lote" {...sortableProps} />
+            <th className={thClass}>NetSuite</th>
             <th className={thClass} />
           </tr>
         </thead>
@@ -208,6 +209,16 @@ export default async function ComprasPage({
                 )}
               </td>
               <td className={tdClass}>
+                {c.netsuiteOrderId ? (
+                  <EstadoBadge
+                    label={c.netsuiteOrderNumber ?? "Enviada"}
+                    tone="positive"
+                  />
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td className={tdClass}>
                 <Link href={`/compras/${c.id}`} className={buttonClass("link")}>
                   Ver
                 </Link>
@@ -216,7 +227,7 @@ export default async function ComprasPage({
           ))}
           {compras.length === 0 && (
             <tr>
-              <td colSpan={10} className={`${tdClass} text-center text-muted`}>
+              <td colSpan={11} className={`${tdClass} text-center text-muted`}>
                 Sin compras con estos filtros.
               </td>
             </tr>

@@ -74,6 +74,14 @@ async function postRecord(
     headers: {
       Authorization: firmarSolicitudTBA("POST", createUrl),
       "Content-Type": "application/json",
+      // El REST API de NetSuite exige estos headers con el idioma default de
+      // la compañía (no el del usuario) — sin ellos rechaza la solicitud con
+      // INVALID_HEADER, incluso en cuentas configuradas en español.
+      // Content-Language describe el idioma del body que mandamos; Accept-
+      // Language, el idioma en el que esperamos la respuesta — NetSuite pide
+      // ambos por separado según el tipo de solicitud.
+      "Content-Language": "en",
+      "Accept-Language": "en",
     },
     body: JSON.stringify(body),
   });
@@ -99,14 +107,21 @@ async function postRecord(
   // reintento del usuario crearía una segunda orden duplicada.
   try {
     const getResponse = await fetch(location, {
-      headers: { Authorization: firmarSolicitudTBA("GET", location) },
+      headers: {
+        Authorization: firmarSolicitudTBA("GET", location),
+        "Accept-Language": "en",
+      },
     });
     if (!getResponse.ok) {
+      console.error(
+        `[netsuite] confirmación de orden ${id} falló (${getResponse.status}): ${await getResponse.text()}`,
+      );
       return { id, tranId: null };
     }
     const record = (await getResponse.json()) as { tranId: string };
     return { id, tranId: record.tranId ?? null };
-  } catch {
+  } catch (error) {
+    console.error(`[netsuite] confirmación de orden ${id} falló:`, error);
     return { id, tranId: null };
   }
 }
@@ -118,11 +133,21 @@ export function construirPayloadOrdenCompra(input: {
   precioUnitarioKg: number;
   subsidiaryId: string;
   tranDate: string;
+  employeeId: string;
+  locationId: string;
+  departmentId: string;
 }) {
   return {
     entity: { id: input.netsuiteVendorId },
     subsidiary: { id: input.subsidiaryId },
     tranDate: input.tranDate,
+    // "Fecha de cita" en el formulario de esta cuenta — mismo valor que
+    // tranDate, no hay concepto de cita separado en el flujo de báscula.
+    dueDate: input.tranDate,
+    employee: { id: input.employeeId },
+    location: { id: input.locationId },
+    // "Centro de Aprobación" en el formulario — es el campo department.
+    department: { id: input.departmentId },
     item: {
       items: [
         { item: { id: input.netsuiteItemId }, quantity: input.netoKg, rate: input.precioUnitarioKg },
@@ -138,11 +163,18 @@ export function construirPayloadOrdenVenta(input: {
   precioUnitarioKg: number;
   subsidiaryId: string;
   tranDate: string;
+  employeeId: string;
+  locationId: string;
+  departmentId: string;
 }) {
   return {
     entity: { id: input.netsuiteCustomerId },
     subsidiary: { id: input.subsidiaryId },
     tranDate: input.tranDate,
+    dueDate: input.tranDate,
+    employee: { id: input.employeeId },
+    location: { id: input.locationId },
+    department: { id: input.departmentId },
     item: {
       items: [
         { item: { id: input.netsuiteItemId }, quantity: input.pesoKg, rate: input.precioUnitarioKg },
@@ -157,6 +189,9 @@ export async function crearOrdenCompra(input: {
   netoKg: number;
   precioUnitarioKg: number;
   tranDate: string;
+  employeeId: string;
+  locationId: string;
+  departmentId: string;
 }): Promise<{ id: string; tranId: string | null }> {
   const subsidiaryId = requerido("NETSUITE_SUBSIDIARY_ID");
   const payload = construirPayloadOrdenCompra({ ...input, subsidiaryId });
@@ -169,6 +204,9 @@ export async function crearOrdenVenta(input: {
   pesoKg: number;
   precioUnitarioKg: number;
   tranDate: string;
+  employeeId: string;
+  locationId: string;
+  departmentId: string;
 }): Promise<{ id: string; tranId: string | null }> {
   const subsidiaryId = requerido("NETSUITE_SUBSIDIARY_ID");
   const payload = construirPayloadOrdenVenta({ ...input, subsidiaryId });

@@ -52,11 +52,12 @@ enum TipoEvidencia {
 }
 
 model Ubicacion {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  codigo    String   @unique
-  activo    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id                 Int      @id @default(autoincrement())
+  nombre             String
+  codigo             String   @unique
+  netsuiteLocationId String? // ID interno del Location en NetSuite, para Órdenes de Compra/Venta
+  activo             Boolean  @default(true)
+  createdAt          DateTime @default(now())
 
   usuarios Usuario[]
   pesajes  Pesaje[]
@@ -66,18 +67,19 @@ model Ubicacion {
 }
 
 model Usuario {
-  id           Int         @id @default(autoincrement())
-  nombre       String
-  email        String      @unique
-  passwordHash String
-  role         RoleUsuario
-  activo       Boolean     @default(true)
-  ubicacionId  Int? // sede base; null = cruza ubicaciones (admin/supervisor)
-  ubicacion    Ubicacion?  @relation(fields: [ubicacionId], references: [id])
-  clienteId    Int? // solo para role = CLIENTE (cuenta de portal)
-  cliente      Cliente?    @relation(fields: [clienteId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                 Int         @id @default(autoincrement())
+  nombre             String
+  email              String      @unique
+  passwordHash       String
+  role               RoleUsuario
+  activo             Boolean     @default(true)
+  ubicacionId        Int? // sede base; null = cruza ubicaciones (admin/supervisor)
+  ubicacion          Ubicacion?  @relation(fields: [ubicacionId], references: [id])
+  clienteId          Int? // solo para role = CLIENTE (cuenta de portal)
+  cliente            Cliente?    @relation(fields: [clienteId], references: [id])
+  netsuiteEmployeeId String? // ID interno del Employee en NetSuite — usuario que envía la orden
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
   pesajesCreados             Pesaje[]             @relation("PesajeCreadoPor")
   ventasCreadas              Venta[]              @relation("VentaCreadaPor")
@@ -86,6 +88,18 @@ model Usuario {
   firmas                     Firma[]
   auditLogs                  AuditLog[]
   resetTokens                PasswordResetToken[]
+}
+
+// Departamento de NetSuite ("department") usado como "Centro de Aprobación"
+// en el formulario de Purchase/Sales Order de esta cuenta. Varias filas
+// posibles, pero solo una marcada "predeterminado" se usa al enviar.
+model CentroAprobacion {
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  netsuiteId     String
+  predeterminado Boolean  @default(false)
+  activo         Boolean  @default(true)
+  createdAt      DateTime @default(now())
 }
 
 model PasswordResetToken {

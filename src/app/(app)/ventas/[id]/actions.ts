@@ -282,10 +282,13 @@ export async function enviarVentaANetSuite(
   const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const id = Number(formData.get("id"));
-  const venta = await prisma.venta.findUnique({
-    where: { id },
-    include: { cliente: true, articulo: true },
-  });
+  const [venta, centroAprobacion] = await Promise.all([
+    prisma.venta.findUnique({
+      where: { id },
+      include: { cliente: true, articulo: true, ubicacion: true },
+    }),
+    prisma.centroAprobacion.findFirst({ where: { predeterminado: true, activo: true } }),
+  ]);
   if (!venta) return { message: "Venta no encontrada." };
   if (!canAccessUbicacion(usuario, venta.ubicacionId)) {
     return { message: "Venta no encontrada." };
@@ -306,6 +309,21 @@ export async function enviarVentaANetSuite(
       message: `Falta configurar el ID de NetSuite del artículo "${venta.articulo.nombre}".`,
     };
   }
+  if (!venta.ubicacion.netsuiteLocationId) {
+    return {
+      message: `Falta configurar el ID de NetSuite de la ubicación "${venta.ubicacion.nombre}".`,
+    };
+  }
+  if (!usuario.netsuiteEmployeeId) {
+    return {
+      message: `Falta configurar tu ID de Employee en NetSuite (catálogo de Usuarios, "${usuario.nombre}").`,
+    };
+  }
+  if (!centroAprobacion) {
+    return {
+      message: "Falta configurar un Centro de Aprobación predeterminado (catálogo de Centro de Aprobación).",
+    };
+  }
 
   let orden: { id: string; tranId: string | null };
   try {
@@ -315,6 +333,9 @@ export async function enviarVentaANetSuite(
       pesoKg: Number(venta.pesoReportadoClienteKg ?? 0),
       precioUnitarioKg: Number(venta.precioUnitarioKg),
       tranDate: venta.createdAt.toISOString().slice(0, 10),
+      employeeId: usuario.netsuiteEmployeeId,
+      locationId: venta.ubicacion.netsuiteLocationId,
+      departmentId: centroAprobacion.netsuiteId,
     });
   } catch (error) {
     return {

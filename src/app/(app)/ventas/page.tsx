@@ -161,6 +161,7 @@ export default async function VentasPage({
             <SortableHeader label="Artículo" field="articulo" {...sortableProps} />
             <SortableHeader label="Vendido (kg)" field="vendido" {...sortableProps} />
             <SortableHeader label="Importe" field="importe" {...sortableProps} />
+            <th className={thClass}>NetSuite</th>
             <th className={thClass} />
           </tr>
         </thead>
@@ -179,6 +180,16 @@ export default async function VentasPage({
               <td className={tdClass}>{v.pesoVendidoKg.toString()}</td>
               <td className={tdClass}>${v.importeTotal.toString()}</td>
               <td className={tdClass}>
+                {v.netsuiteOrderId ? (
+                  <EstadoBadge
+                    label={v.netsuiteOrderNumber ?? "Enviada"}
+                    tone="positive"
+                  />
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td className={tdClass}>
                 <Link href={`/ventas/${v.id}`} className={buttonClass("link")}>
                   Ver
                 </Link>
@@ -187,7 +198,7 @@ export default async function VentasPage({
           ))}
           {ventas.length === 0 && (
             <tr>
-              <td colSpan={7} className={`${tdClass} text-center text-muted`}>
+              <td colSpan={8} className={`${tdClass} text-center text-muted`}>
                 Sin ventas con estos filtros.
               </td>
             </tr>

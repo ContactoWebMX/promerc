@@ -17,21 +17,24 @@ export async function saveUbicacion(
   const validated = ubicacionSchema.safeParse({
     nombre: formData.get("nombre"),
     codigo: formData.get("codigo"),
+    netsuiteLocationId: formData.get("netsuiteLocationId"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
   }
 
   const id = formData.get("id");
+  const data = {
+    nombre: validated.data.nombre,
+    codigo: validated.data.codigo,
+    netsuiteLocationId: validated.data.netsuiteLocationId || null,
+  };
 
   try {
     if (id) {
-      await prisma.ubicacion.update({
-        where: { id: Number(id) },
-        data: validated.data,
-      });
+      await prisma.ubicacion.update({ where: { id: Number(id) }, data });
     } else {
-      await prisma.ubicacion.create({ data: validated.data });
+      await prisma.ubicacion.create({ data });
     }
   } catch (error) {
     if (isUniqueConstraintError(error)) {

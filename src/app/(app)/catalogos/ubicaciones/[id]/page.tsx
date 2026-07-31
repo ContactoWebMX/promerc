@@ -28,12 +28,21 @@ export default async function UbicacionFormPage({
         hiddenId={ubicacion?.id}
         defaultValues={
           ubicacion
-            ? { nombre: ubicacion.nombre, codigo: ubicacion.codigo }
+            ? {
+                nombre: ubicacion.nombre,
+                codigo: ubicacion.codigo,
+                netsuiteLocationId: ubicacion.netsuiteLocationId ?? "",
+              }
             : undefined
         }
         fields={[
           { name: "nombre", label: "Nombre", required: true },
           { name: "codigo", label: "Código", required: true },
+          {
+            name: "netsuiteLocationId",
+            label: "ID de Location en NetSuite",
+            helpText: "Opcional. Necesario para enviar Compras/Ventas de esta ubicación.",
+          },
         ]}
       />
     </div>

@@ -147,10 +147,13 @@ export async function enviarCompraANetSuite(
   const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const id = Number(formData.get("id"));
-  const compra = await prisma.compra.findUnique({
-    where: { id },
-    include: { proveedor: true, pesaje: { include: { articulo: true } } },
-  });
+  const [compra, centroAprobacion] = await Promise.all([
+    prisma.compra.findUnique({
+      where: { id },
+      include: { proveedor: true, pesaje: { include: { articulo: true } }, ubicacion: true },
+    }),
+    prisma.centroAprobacion.findFirst({ where: { predeterminado: true, activo: true } }),
+  ]);
   if (!compra) return { message: "Compra no encontrada." };
   if (compra.estado === "CANCELADA") {
     return { message: "No se puede enviar a NetSuite una compra cancelada." };
@@ -168,6 +171,21 @@ export async function enviarCompraANetSuite(
       message: `Falta configurar el ID de NetSuite del artículo "${compra.pesaje.articulo?.nombre ?? ""}".`,
     };
   }
+  if (!compra.ubicacion.netsuiteLocationId) {
+    return {
+      message: `Falta configurar el ID de NetSuite de la ubicación "${compra.ubicacion.nombre}".`,
+    };
+  }
+  if (!usuario.netsuiteEmployeeId) {
+    return {
+      message: `Falta configurar tu ID de Employee en NetSuite (catálogo de Usuarios, "${usuario.nombre}").`,
+    };
+  }
+  if (!centroAprobacion) {
+    return {
+      message: "Falta configurar un Centro de Aprobación predeterminado (catálogo de Centro de Aprobación).",
+    };
+  }
 
   let orden: { id: string; tranId: string | null };
   try {
@@ -177,6 +195,9 @@ export async function enviarCompraANetSuite(
       netoKg: Number(compra.pesaje.netoKg ?? 0),
       precioUnitarioKg: Number(compra.precioUnitarioKg),
       tranDate: compra.createdAt.toISOString().slice(0, 10),
+      employeeId: usuario.netsuiteEmployeeId,
+      locationId: compra.ubicacion.netsuiteLocationId,
+      departmentId: centroAprobacion.netsuiteId,
     });
   } catch (error) {
     return {

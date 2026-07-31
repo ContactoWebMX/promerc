@@ -47,6 +47,7 @@ export default async function UsuarioFormPage({
                 role: usuario.role,
                 ubicacionId: usuario.ubicacionId?.toString() ?? "",
                 clienteId: usuario.clienteId?.toString() ?? "",
+                netsuiteEmployeeId: usuario.netsuiteEmployeeId ?? "",
               }
             : undefined
         }
@@ -92,6 +93,11 @@ export default async function UsuarioFormPage({
               value: c.id.toString(),
               label: c.nombre,
             })),
+          },
+          {
+            name: "netsuiteEmployeeId",
+            label: "ID de Employee en NetSuite",
+            helpText: "Opcional. Necesario para enviar a NetSuite las Compras/Ventas que este usuario envíe.",
           },
         ]}
       />
