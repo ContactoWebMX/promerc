@@ -56,3 +56,6 @@ next-env.d.ts
 /fotos/
 .gstack/
 .impeccable/
+
+# docs internos (incluye llaves.txt con credenciales) — no se versionan
+/docs/
