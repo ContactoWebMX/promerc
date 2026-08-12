@@ -25,7 +25,7 @@ export async function reportarPesoVenta(
   _state: VentaFormState,
   formData: FormData,
 ): Promise<VentaFormState> {
-  const usuario = await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const id = Number(formData.get("id"));
   const venta = await prisma.venta.findUnique({ where: { id } });

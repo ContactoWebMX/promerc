@@ -11,7 +11,7 @@ export async function crearCompra(
   _state: CatalogFormState,
   formData: FormData,
 ): Promise<CatalogFormState> {
-  const usuario = await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const pesajeId = Number(formData.get("pesajeId"));
   const pesaje = await prisma.pesaje.findUnique({

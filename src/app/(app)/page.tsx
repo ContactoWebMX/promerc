@@ -7,12 +7,6 @@ import { inputClass, labelClass } from "@/components/ui/field";
 import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
 import { resolverRangoFecha } from "@/lib/rango-fecha";
 
-const ACCESOS_RAPIDOS = [
-  { href: "/pesajes/nuevo", label: "Nuevo pesaje" },
-  { href: "/ventas/nuevo", label: "Nueva venta" },
-  { href: "/lotes", label: "Ver lotes" },
-];
-
 export default async function HomePage({
   searchParams,
 }: {
@@ -36,6 +30,13 @@ export default async function HomePage({
 
   const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
   const ubicacionId = soloMiUbicacion ? (usuario.ubicacionId ?? -1) : undefined;
+  const puedeVerCompraVenta = usuario.role === "ADMIN" || usuario.role === "SUPERVISOR";
+
+  const accesosRapidos = [
+    { href: "/pesajes/nuevo", label: "Nuevo pesaje" },
+    ...(puedeVerCompraVenta ? [{ href: "/ventas/nuevo", label: "Nueva venta" }] : []),
+    { href: "/lotes", label: "Ver lotes" },
+  ];
 
   const [resumen, inventario] = await Promise.all([
     resumenPeriodo(desde, hasta, ubicacionId),
@@ -50,7 +51,7 @@ export default async function HomePage({
         title={`Hola, ${usuario.nombre}`}
         action={
           <div className="flex flex-wrap gap-2">
-            {ACCESOS_RAPIDOS.map((a) => (
+            {accesosRapidos.map((a) => (
               <Link key={a.href} href={a.href} className={buttonClass("primary", "sm")}>
                 {a.label}
               </Link>
@@ -116,12 +117,16 @@ export default async function HomePage({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-medium">Inventario por artículo / ubicación</h2>
           <div className="flex flex-wrap gap-4 text-sm">
-            <a href={`/api/exports/compras${exportQuery}`} className={buttonClass("link")}>
-              Exportar compras del periodo
-            </a>
-            <a href={`/api/exports/ventas${exportQuery}`} className={buttonClass("link")}>
-              Exportar ventas del periodo
-            </a>
+            {puedeVerCompraVenta && (
+              <>
+                <a href={`/api/exports/compras${exportQuery}`} className={buttonClass("link")}>
+                  Exportar compras del periodo
+                </a>
+                <a href={`/api/exports/ventas${exportQuery}`} className={buttonClass("link")}>
+                  Exportar ventas del periodo
+                </a>
+              </>
+            )}
             <a href="/api/exports/inventario" className={buttonClass("link")}>
               Exportar inventario
             </a>

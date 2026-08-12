@@ -13,9 +13,13 @@ export default async function AppLayout({
       : [
           { href: "/", label: "Reportes" },
           { href: "/pesajes", label: "Pesajes" },
-          { href: "/compras", label: "Compras" },
+          ...(usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
+            ? [{ href: "/compras", label: "Compras" }]
+            : []),
           { href: "/lotes", label: "Lotes" },
-          { href: "/ventas", label: "Ventas" },
+          ...(usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
+            ? [{ href: "/ventas", label: "Ventas" }]
+            : []),
           { href: "/mermas", label: "Mermas" },
           ...(usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
             ? [{ href: "/catalogos", label: "Catálogos" }]

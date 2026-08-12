@@ -11,7 +11,7 @@ export async function crearVenta(
   _state: CatalogFormState,
   formData: FormData,
 ): Promise<CatalogFormState> {
-  const usuario = await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const validated = crearVentaSchema.safeParse({
     clienteId: formData.get("clienteId"),

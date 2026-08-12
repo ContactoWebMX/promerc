@@ -1,9 +1,9 @@
-import { getCurrentUser } from "@/lib/auth/dal";
+import { requireRole } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { buildWorkbook } from "@/lib/export/excel";
 
 export async function GET(request: Request) {
-  const usuario = await getCurrentUser();
+  const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
   const soloMiUbicacion = usuario.role !== "ADMIN" && usuario.role !== "SUPERVISOR";
 
   const { searchParams } = new URL(request.url);
