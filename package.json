@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "cp -r public .next/standalone/ && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/ && rm -rf deploy && mkdir -p deploy && cp -r .next/standalone/server.js .next/standalone/node_modules .next/standalone/.next .next/standalone/public deploy/",
+    "postbuild": "cp -r public .next/standalone/ && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/ && rm -rf deploy && mkdir -p deploy && cp -r .next/standalone/server.js .next/standalone/node_modules .next/standalone/.next .next/standalone/public deploy/ && cp package.json package-lock.json deploy/",
     "start": "next start",
     "start:standalone": "node deploy/server.js",
     "lint": "eslint",

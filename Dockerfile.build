@@ -1,0 +1,15 @@
+# Imagen SOLO para compilar deploy/ en un entorno equivalente al servidor de
+# producción (CloudLinux 8 = RHEL 8, glibc ~2.28) — AlmaLinux 8 es el rebuild
+# público más cercano. Así el binario nativo de argon2 (y el de Prisma, si
+# aplica) quedan compatibles con el hosting, sin compilar ahí.
+# No se publica ni se despliega esta imagen — solo genera artefactos locales.
+FROM almalinux:8
+
+RUN dnf module enable -y nodejs:20 python39:3.9 && \
+    dnf install -y nodejs gcc-c++ make python39 git && \
+    dnf clean all
+# node-gyp usa sintaxis de Python >=3.8 (walrus operator); el python3 default
+# de AlmaLinux 8 es 3.6 y falla al compilar — se apunta explícito a 3.9.
+ENV PYTHON=/usr/bin/python3.9
+
+WORKDIR /app

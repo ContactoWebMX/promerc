@@ -59,3 +59,7 @@ next-env.d.ts
 
 # docs internos (incluye llaves.txt con credenciales) — no se versionan
 /docs/
+
+# paquetes armados para subir a cPanel (se regeneran con build-for-cpanel.sh)
+/deploy.zip
+/promerc-migrate.zip
