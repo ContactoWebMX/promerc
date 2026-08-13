@@ -34,12 +34,26 @@ export async function saveReglaNotificacion(
     | "VENTA_CERRADA"
     | "VENTA_REQUIERE_APROBACION";
 
+  const destinatario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
+
+  // La UI ya excluye CLIENTE del selector (ver [id]/page.tsx) y solo debería
+  // ofrecer usuarios activos, pero eso no protege una petición armada a
+  // mano — se valida también aquí, para cualquier tipo de notificación.
+  if (!destinatario || destinatario.role === "CLIENTE" || !destinatario.activo) {
+    return {
+      errors: {
+        usuarioId: [
+          "No se puede configurar esta notificación para una cuenta de cliente o inactiva.",
+        ],
+      },
+    };
+  }
+
   // Solo ADMIN/SUPERVISOR pueden aprobar una excepción de tolerancia
   // (aprobarExcepcionTolerancia en ventas/[id]/actions.ts ya exige ese rol)
   // — configurar aquí a alguien más sería una regla que nunca sirve.
   if (tipo === "VENTA_REQUIERE_APROBACION") {
-    const destinatario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
-    if (!destinatario || (destinatario.role !== "ADMIN" && destinatario.role !== "SUPERVISOR")) {
+    if (destinatario.role !== "ADMIN" && destinatario.role !== "SUPERVISOR") {
       return {
         errors: {
           usuarioId: [

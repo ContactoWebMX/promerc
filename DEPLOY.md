@@ -135,7 +135,8 @@ están en el bundle de migración) — en su lugar:
   - `APP_URL`, `DATABASE_URL` (con la IP interna `127.0.0.200`, no una
     pública — la app corre en el propio servidor), `SESSION_SECRET`
     (`openssl rand -base64 32`), `STORAGE_ROOT` (ruta fuera de `deploy/`,
-    ej. `/home/usuario/promerc-storage`), `NODE_ENV=production`, y
+    ej. `/home/usuario/promerc-storage`), `NODE_ENV=production`,
+    `CRON_SECRET` (usado por el paso 6, ver `.env.production.example`), y
     `SMTP_*` si ya hay correo configurado.
 - **No le des clic a "Run NPM Install"** — `node_modules` ya viene armado y
   compatible dentro de `deploy/`; reinstalar ahí lo pisa con paquetes que

@@ -11,15 +11,23 @@ export async function GET() {
   const usuario = await getCurrentUser();
   const desde = new Date(Date.now() - DIAS_HISTORIAL * 24 * 60 * 60 * 1000);
 
+  // No-ADMIN/SUPERVISOR solo ven notificaciones de su propia ubicación —
+  // mismo criterio que canAccessUbicacion en dal.ts. Una regla configurada
+  // como "Todas" no debe filtrar datos de otra sede a este rol.
+  const filtroUbicacion =
+    usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
+      ? {}
+      : { notificacion: { ubicacionId: usuario.ubicacionId ?? -1 } };
+
   const [items, noLeidas] = await Promise.all([
     prisma.notificacionDestinatario.findMany({
-      where: { usuarioId: usuario.id, createdAt: { gte: desde } },
+      where: { usuarioId: usuario.id, createdAt: { gte: desde }, ...filtroUbicacion },
       include: { notificacion: true },
       orderBy: { createdAt: "desc" },
       take: LIMITE_ITEMS,
     }),
     prisma.notificacionDestinatario.count({
-      where: { usuarioId: usuario.id, leidoEn: null },
+      where: { usuarioId: usuario.id, leidoEn: null, ...filtroUbicacion },
     }),
   ]);
 

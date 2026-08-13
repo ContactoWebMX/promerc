@@ -99,14 +99,19 @@ export async function armarCorreoNotificacion(
   `;
 
   const evidencia = await resolverEvidenciaAdjunta(entidad, entidadId);
-  const attachments = evidencia
-    ? [
+  let attachments: { filename: string; content: Buffer }[] = [];
+  if (evidencia) {
+    try {
+      attachments = [
         {
           filename: `evidencia.${evidencia.mimeType.split("/")[1] ?? "bin"}`,
           content: await readStoredFile(evidencia.rutaArchivo),
         },
-      ]
-    : [];
+      ];
+    } catch (error) {
+      console.error(`No se pudo adjuntar evidencia ${evidencia.rutaArchivo}:`, error);
+    }
+  }
 
   return { subject: `${titulo} — ${referencia}`, html, attachments };
 }

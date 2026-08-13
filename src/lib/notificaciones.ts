@@ -67,8 +67,10 @@ export function resolverDestinatarios(
   return porUsuario;
 }
 
-// Campos que se ocultan si el destinatario es OPERADOR — mismo criterio que
-// ya restringe precios en las pantallas de Compras/Ventas para ese rol.
+// Campos que se ocultan si el destinatario es OPERADOR o CLIENTE — mismo
+// criterio que ya restringe precios en las pantallas de Compras/Ventas para
+// OPERADOR, extendido a CLIENTE porque una cuenta de portal tampoco debe
+// ver proveedor/precio de compra de otro cliente.
 const CAMPOS_PRECIO_POR_TIPO: Partial<Record<TipoNotificacion, string[]>> = {
   COMPRA_REGISTRADA: ["precioUnitarioKg", "importeTotal"],
   VENTA_CERRADA: ["precioUnitarioKg", "importeTotal"],
@@ -79,7 +81,7 @@ export function resumenParaRol(
   tipo: TipoNotificacion,
   role: RoleUsuario,
 ): Record<string, unknown> {
-  if (role !== "OPERADOR") return resumen;
+  if (role !== "OPERADOR" && role !== "CLIENTE") return resumen;
   const camposOcultos = CAMPOS_PRECIO_POR_TIPO[tipo];
   if (!camposOcultos) return resumen;
   const filtrado = { ...resumen };

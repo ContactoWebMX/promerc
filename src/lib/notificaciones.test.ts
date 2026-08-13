@@ -40,6 +40,14 @@ test("resumenParaRol oculta precio en VENTA_CERRADA para OPERADOR pero no para A
   assert.equal(paraAdmin.precioUnitarioKg, 2);
 });
 
+test("resumenParaRol oculta precioUnitarioKg e importeTotal para CLIENTE en COMPRA_REGISTRADA", () => {
+  const resumen = { folioTicket: "7654", proveedorNombre: "ITALIKA", netoKg: 980, precioUnitarioKg: 3, importeTotal: 2940 };
+  const resultado = resumenParaRol(resumen, "COMPRA_REGISTRADA", "CLIENTE");
+  assert.equal("precioUnitarioKg" in resultado, false);
+  assert.equal("importeTotal" in resultado, false);
+  assert.equal(resultado.folioTicket, "7654");
+});
+
 test("resumenParaRol no quita nada en tipos sin precio (PESAJE_COMPLETADO)", () => {
   const resumen = { folioTicket: "7654", ubicacionNombre: "ITALIKA", proveedorNombre: "ITALIKA", articuloNombre: "CARTON", netoKg: 980 };
   const resultado = resumenParaRol(resumen, "PESAJE_COMPLETADO", "OPERADOR");
