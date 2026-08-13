@@ -22,7 +22,10 @@ export default async function AppLayout({
             : []),
           { href: "/mermas", label: "Mermas" },
           ...(usuario.role === "ADMIN" || usuario.role === "SUPERVISOR"
-            ? [{ href: "/catalogos", label: "Catálogos" }]
+            ? [
+                { href: "/catalogos", label: "Catálogos" },
+                { href: "/auditoria", label: "Auditoría" },
+              ]
             : []),
         ];
 
