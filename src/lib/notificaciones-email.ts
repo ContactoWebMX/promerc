@@ -56,11 +56,20 @@ const ETIQUETAS_CAMPO: Record<string, string> = {
 // evento solo trae un subconjunto de estas llaves en su resumen.
 const ORDEN_CAMPOS = Object.keys(ETIQUETAS_CAMPO);
 
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function tablaResumen(resumen: Record<string, unknown>): string {
   const filas = ORDEN_CAMPOS.filter((campo) => campo in resumen)
     .map(
       (campo) =>
-        `<tr><td style="padding:4px 12px 4px 0;color:#666;">${ETIQUETAS_CAMPO[campo]}</td><td style="padding:4px 0;font-weight:600;">${resumen[campo]}</td></tr>`,
+        `<tr><td style="padding:4px 12px 4px 0;color:#666;">${ETIQUETAS_CAMPO[campo]}</td><td style="padding:4px 0;font-weight:600;">${escapeHtml(resumen[campo])}</td></tr>`,
     )
     .join("");
   return `<table>${filas}</table>`;
