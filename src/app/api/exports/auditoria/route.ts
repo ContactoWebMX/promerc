@@ -12,6 +12,8 @@ export async function GET(request: Request) {
   const entidad = searchParams.get("entidad");
   const accion = searchParams.get("accion");
   const usuarioIdParam = searchParams.get("usuarioId");
+  const usuarioIdNum = Number(usuarioIdParam);
+  const usuarioId = Number.isSafeInteger(usuarioIdNum) ? usuarioIdNum : undefined;
 
   const registros = await prisma.auditLog.findMany({
     where: {
@@ -25,7 +27,7 @@ export async function GET(request: Request) {
         : {}),
       ...(entidad ? { entidad } : {}),
       ...(accion ? { accion } : {}),
-      ...(usuarioIdParam ? { usuarioId: Number(usuarioIdParam) } : {}),
+      ...(usuarioId ? { usuarioId } : {}),
     },
     include: { usuario: { select: { nombre: true } } },
     orderBy: { createdAt: "desc" },

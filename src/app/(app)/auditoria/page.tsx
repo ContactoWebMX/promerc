@@ -35,8 +35,11 @@ export default async function AuditoriaPage({
   const entidad =
     params.entidad && ENTIDADES.includes(params.entidad) ? params.entidad : undefined;
   const accion =
-    params.accion && params.accion in ACCIONES_AUDITORIA ? params.accion : undefined;
-  const usuarioId = params.usuarioId ? Number(params.usuarioId) : undefined;
+    params.accion && Object.hasOwn(ACCIONES_AUDITORIA, params.accion)
+      ? params.accion
+      : undefined;
+  const usuarioIdNum = Number(params.usuarioId);
+  const usuarioId = Number.isSafeInteger(usuarioIdNum) ? usuarioIdNum : undefined;
 
   const where = {
     createdAt: { gte: desde, lte: hasta },
@@ -45,7 +48,7 @@ export default async function AuditoriaPage({
     ...(usuarioId ? { usuarioId } : {}),
   };
 
-  const [registros, total, usuariosDistintos] = await Promise.all([
+  const [registros, total] = await Promise.all([
     prisma.auditLog.findMany({
       where,
       include: { usuario: { select: { nombre: true } } },
@@ -54,12 +57,14 @@ export default async function AuditoriaPage({
       take: perPage,
     }),
     prisma.auditLog.count({ where }),
-    prisma.auditLog.findMany({
-      distinct: ["usuarioId"],
-      select: { usuario: { select: { id: true, nombre: true } } },
-      orderBy: { usuarioId: "asc" },
-    }),
   ]);
+
+  const grupos = await prisma.auditLog.groupBy({ by: ["usuarioId"] });
+  const usuariosDistintos = await prisma.usuario.findMany({
+    where: { id: { in: grupos.map((g) => g.usuarioId) } },
+    select: { id: true, nombre: true },
+    orderBy: { nombre: "asc" },
+  });
 
   const totalPaginas = Math.max(1, Math.ceil(total / perPage));
   const paginaActual = Math.min(pagina, totalPaginas);
@@ -145,9 +150,9 @@ export default async function AuditoriaPage({
             className={inputClass}
           >
             <option value="">Todos</option>
-            {usuariosDistintos.map((r) => (
-              <option key={r.usuario.id} value={r.usuario.id}>
-                {r.usuario.nombre}
+            {usuariosDistintos.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.nombre}
               </option>
             ))}
           </select>
