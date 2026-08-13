@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { requireRole, canAccessUbicacion } from "@/lib/auth/dal";
 import { actualizarEstadoLote } from "@/lib/lote";
 import { crearCompraSchema } from "@/lib/validations/compras";
+import { crearNotificacion } from "@/lib/notificaciones-server";
+import type { ResumenCompraRegistrada } from "@/lib/notificaciones";
 import type { CatalogFormState } from "@/components/catalog-form";
 
 export async function crearCompra(
@@ -16,7 +18,7 @@ export async function crearCompra(
   const pesajeId = Number(formData.get("pesajeId"));
   const pesaje = await prisma.pesaje.findUnique({
     where: { id: pesajeId },
-    include: { compra: true },
+    include: { compra: true, proveedor: true },
   });
 
   if (!pesaje) return { message: "Pesaje no encontrado." };
@@ -58,6 +60,21 @@ export async function crearCompra(
   });
 
   await actualizarEstadoLote(pesaje.loteId);
+
+  const resumen: ResumenCompraRegistrada = {
+    folioTicket: pesaje.folioTicket,
+    proveedorNombre: pesaje.proveedor.nombre,
+    netoKg,
+    precioUnitarioKg: validated.data.precioUnitarioKg,
+    importeTotal,
+  };
+  await crearNotificacion({
+    tipo: "COMPRA_REGISTRADA",
+    entidad: "Compra",
+    entidadId: compra.id,
+    ubicacionId: pesaje.ubicacionId,
+    resumen,
+  });
 
   redirect(`/compras/${compra.id}`);
 }
