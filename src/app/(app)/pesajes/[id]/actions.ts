@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireRole, canAccessUbicacion } from "@/lib/auth/dal";
 import { saveUpload, saveDataUrl } from "@/lib/storage";
+import { crearNotificacion } from "@/lib/notificaciones-server";
+import type { ResumenPesajeCompletado } from "@/lib/notificaciones";
 import { registrarAuditLog } from "@/lib/audit";
 import { crearLoteParaCompra } from "@/lib/lote";
 import {
@@ -133,7 +135,10 @@ export async function cerrarPesaje(
   const usuario = await requireRole(["ADMIN", "SUPERVISOR", "OPERADOR"]);
 
   const id = Number(formData.get("id"));
-  const pesaje = await prisma.pesaje.findUnique({ where: { id } });
+  const pesaje = await prisma.pesaje.findUnique({
+    where: { id },
+    include: { proveedor: true, articulo: true, ubicacion: true },
+  });
   if (!pesaje) {
     return { message: "Pesaje no encontrado." };
   }
@@ -204,6 +209,21 @@ export async function cerrarPesaje(
       },
     }),
   ]);
+
+  const resumen: ResumenPesajeCompletado = {
+    folioTicket: pesaje.folioTicket,
+    ubicacionNombre: pesaje.ubicacion.nombre,
+    proveedorNombre: pesaje.proveedor.nombre,
+    articuloNombre: pesaje.articulo?.nombre ?? "—",
+    netoKg,
+  };
+  await crearNotificacion({
+    tipo: "PESAJE_COMPLETADO",
+    entidad: "Pesaje",
+    entidadId: id,
+    ubicacionId: pesaje.ubicacionId,
+    resumen,
+  });
 
   revalidatePath(`/pesajes/${id}`);
   revalidatePath("/pesajes");
