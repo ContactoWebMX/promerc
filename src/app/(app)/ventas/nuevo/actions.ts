@@ -20,6 +20,7 @@ export async function crearVenta(
     precioUnitarioKg: formData.get("precioUnitarioKg"),
     operadorNombre: formData.get("operadorNombre"),
     placas: formData.get("placas"),
+    fechaOperacion: formData.get("fechaOperacion"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -64,6 +65,7 @@ export async function crearVenta(
   const importeTotal = Number(
     (validated.data.precioUnitarioKg * validated.data.pesoAsignadoKg).toFixed(2),
   );
+  const fechaOperacion = new Date(`${validated.data.fechaOperacion}T00:00:00`);
 
   const venta = await prisma.venta.create({
     data: {
@@ -73,6 +75,7 @@ export async function crearVenta(
       pesoVendidoKg: validated.data.pesoAsignadoKg,
       precioUnitarioKg: validated.data.precioUnitarioKg,
       importeTotal,
+      fechaOperacion,
       operadorNombre: validated.data.operadorNombre || null,
       placas: validated.data.placas || null,
       createdByUsuarioId: usuario.id,

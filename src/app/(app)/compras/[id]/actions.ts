@@ -6,9 +6,13 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/dal";
 import { registrarAuditLog } from "@/lib/audit";
 import { actualizarEstadoLote } from "@/lib/lote";
-import { corregirCompraSchema, anularCompraSchema } from "@/lib/validations/compras";
+import {
+  corregirCompraSchema,
+  anularCompraSchema,
+  eliminarCompraSchema,
+} from "@/lib/validations/compras";
 import type { CatalogFormState } from "@/components/catalog-form";
-import { crearOrdenCompra } from "@/lib/netsuite";
+import { crearOrdenCompra, eliminarOrdenCompra } from "@/lib/netsuite";
 
 export async function corregirCompra(
   _state: CatalogFormState,
@@ -64,22 +68,49 @@ export async function corregirCompra(
   redirect(`/compras/${id}`);
 }
 
-export async function eliminarCompra(formData: FormData) {
+export async function eliminarCompra(
+  _state: CatalogFormState,
+  formData: FormData,
+): Promise<CatalogFormState> {
   const usuario = await requireRole(["ADMIN"]);
 
   const id = Number(formData.get("id"));
-  const motivo = String(formData.get("motivo") ?? "").trim();
-  if (!motivo) return;
-
   const compra = await prisma.compra.findUnique({
     where: { id },
     include: { lote: { include: { movimientos: true } } },
   });
-  if (!compra || compra.estado === "CANCELADA") return;
+  if (!compra) return { message: "Compra no encontrada." };
+  if (compra.estado === "CANCELADA") {
+    return { message: "Esta compra ya está cancelada." };
+  }
 
   const asignado =
     compra.lote?.movimientos.reduce((s, m) => s + Number(m.pesoAsignadoKg), 0) ?? 0;
-  if (asignado > 0) return; // el lote ya tiene ventas consumiéndolo — no se puede eliminar
+  if (asignado > 0) {
+    return { message: "No se puede eliminar: su lote ya tiene ventas que consumen este material." };
+  }
+
+  const validated = eliminarCompraSchema.safeParse({ motivo: formData.get("motivo") });
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  // Si ya se envió a NetSuite, se borra allá primero — si NetSuite la
+  // rechaza (ej. ya tiene factura/recepción asociada), el mensaje real de
+  // NetSuite se muestra en el formulario y no se toca nada local, para no
+  // dejar la orden huérfana allá.
+  if (compra.netsuiteOrderId) {
+    try {
+      await eliminarOrdenCompra(compra.netsuiteOrderId);
+    } catch (error) {
+      return {
+        message:
+          error instanceof Error
+            ? `No se pudo eliminar la orden en NetSuite: ${error.message}`
+            : "No se pudo eliminar la orden en NetSuite.",
+      };
+    }
+  }
 
   await prisma.compra.delete({ where: { id } });
 
@@ -91,8 +122,9 @@ export async function eliminarCompra(formData: FormData) {
     detalleAnterior: {
       precioUnitarioKg: compra.precioUnitarioKg.toString(),
       pesajeId: compra.pesajeId,
+      netsuiteOrderId: compra.netsuiteOrderId,
     },
-    motivo,
+    motivo: validated.data.motivo,
   });
 
   revalidatePath("/compras");
@@ -116,6 +148,11 @@ export async function anularCompra(
   if (!compra) return { message: "Compra no encontrada." };
   if (compra.estado !== "ABIERTA") {
     return { message: "Esta compra ya no está abierta." };
+  }
+  if (compra.netsuiteOrderId) {
+    return {
+      message: "Ya se envió a NetSuite — cancélala allá primero para poder anularla aquí.",
+    };
   }
 
   const asignado =

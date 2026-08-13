@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -255,7 +255,7 @@ export default async function LotesPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <SortableHeader label="Fecha" field="fecha" {...sortableProps} />
             <SortableHeader label="Folio" field="folio" {...sortableProps} />
@@ -273,24 +273,24 @@ export default async function LotesPage({
         <tbody>
           {enPagina.map((l) => (
             <tr key={l.id} className={trClass}>
-              <td className={tdClass}>{l.fecha.toLocaleDateString("es-MX")}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Fecha">{l.fecha.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass} data-label="Folio">
                 {l.folio}
                 {l.folioCorregido && (
                   <span className="ml-1 text-xs text-muted">(corregido)</span>
                 )}
               </td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Estado">
                 <EstadoBadge
                   label={ESTADO_CONFIG[l.estado]?.label ?? l.estado}
                   tone={ESTADO_CONFIG[l.estado]?.tone ?? "neutral"}
                 />
               </td>
-              {!soloMiUbicacion && <td className={tdClass}>{l.ubicacionNombre}</td>}
-              <td className={tdClass}>{l.articuloNombre}</td>
-              <td className={tdClass}>{l.comprado.toFixed(2)}</td>
-              <td className={tdClass}>{l.vendido.toFixed(2)}</td>
-              <td className={tdClass}>{l.disponible.toFixed(2)}</td>
+              {!soloMiUbicacion && <td className={tdClass} data-label="Ubicación">{l.ubicacionNombre}</td>}
+              <td className={tdClass} data-label="Artículo">{l.articuloNombre}</td>
+              <td className={tdClass} data-label="Comprado (kg)">{l.comprado.toFixed(2)}</td>
+              <td className={tdClass} data-label="Vendido (kg)">{l.vendido.toFixed(2)}</td>
+              <td className={tdClass} data-label="Disponible (kg)">{l.disponible.toFixed(2)}</td>
               <td className={tdClass}>
                 <Link href={`/lotes/${l.id}`} className={buttonClass("link")}>
                   Ver

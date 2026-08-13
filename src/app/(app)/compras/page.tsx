@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -168,7 +168,7 @@ export default async function ComprasPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <SortableHeader label="Fecha" field="fecha" {...sortableProps} />
             <SortableHeader label="Folio ticket" field="folio" {...sortableProps} />
@@ -186,20 +186,20 @@ export default async function ComprasPage({
         <tbody>
           {compras.map((c) => (
             <tr key={c.id} className={trClass}>
-              <td className={tdClass}>{c.fechaOperacion.toLocaleDateString("es-MX")}</td>
-              <td className={tdClass}>{c.pesaje.folioTicket}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Fecha">{c.fechaOperacion.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass} data-label="Folio ticket">{c.pesaje.folioTicket}</td>
+              <td className={tdClass} data-label="Estado">
                 <EstadoBadge
                   label={ESTADO_CONFIG[c.estado]?.label ?? c.estado}
                   tone={ESTADO_CONFIG[c.estado]?.tone ?? "neutral"}
                 />
               </td>
-              <td className={tdClass}>{c.proveedor.nombre}</td>
-              <td className={tdClass}>{c.pesaje.articulo?.nombre ?? "—"}</td>
-              <td className={tdClass}>{c.pesaje.netoKg?.toString() ?? "—"}</td>
-              <td className={tdClass}>${c.precioUnitarioKg.toString()}</td>
-              <td className={tdClass}>${c.importeTotal.toString()}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Proveedor">{c.proveedor.nombre}</td>
+              <td className={tdClass} data-label="Artículo">{c.pesaje.articulo?.nombre ?? "—"}</td>
+              <td className={tdClass} data-label="Neto (kg)">{c.pesaje.netoKg?.toString() ?? "—"}</td>
+              <td className={tdClass} data-label="Precio/kg">${c.precioUnitarioKg.toString()}</td>
+              <td className={tdClass} data-label="Importe">${c.importeTotal.toString()}</td>
+              <td className={tdClass} data-label="Lote">
                 {c.lote ? (
                   <Link href={`/lotes/${c.lote.id}`} className={buttonClass("link")}>
                     {c.lote.folio}
@@ -208,7 +208,7 @@ export default async function ComprasPage({
                   "—"
                 )}
               </td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="NetSuite">
                 {c.netsuiteOrderId ? (
                   <EstadoBadge
                     label={c.netsuiteOrderNumber ?? "Enviada"}

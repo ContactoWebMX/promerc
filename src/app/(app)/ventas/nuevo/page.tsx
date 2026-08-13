@@ -25,7 +25,15 @@ export default async function NuevaVentaPage() {
         <CatalogForm
           action={crearVenta}
           submitLabel="Registrar venta"
+          defaultValues={{ fechaOperacion: new Date().toISOString().slice(0, 10) }}
           fields={[
+            {
+              name: "fechaOperacion",
+              label: "Fecha de la venta",
+              type: "date",
+              required: true,
+              helpText: "Precargada con hoy — ajústala si la venta se registra en otra fecha.",
+            },
             {
               name: "clienteId",
               label: "Cliente",

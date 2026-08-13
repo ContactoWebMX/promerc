@@ -4,7 +4,7 @@ import { inventarioPorArticuloUbicacion, resumenPeriodo } from "@/lib/reportes";
 import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { resolverRangoFecha } from "@/lib/rango-fecha";
 
 export default async function HomePage({
@@ -133,7 +133,7 @@ export default async function HomePage({
           </div>
         </div>
         <TableWrapper>
-          <thead>
+          <thead className={theadClass}>
             <tr>
               <th className={thClass}>Ubicación</th>
               <th className={thClass}>Artículo</th>
@@ -145,11 +145,11 @@ export default async function HomePage({
           <tbody>
             {inventario.map((i) => (
               <tr key={`${i.ubicacion}-${i.articulo}`} className={trClass}>
-                <td className={tdClass}>{i.ubicacion}</td>
-                <td className={tdClass}>{i.articulo}</td>
-                <td className={tdClass}>{i.comprado.toFixed(2)}</td>
-                <td className={tdClass}>{i.vendido.toFixed(2)}</td>
-                <td className={tdClass}>{i.disponible.toFixed(2)}</td>
+                <td className={tdClass} data-label="Ubicación">{i.ubicacion}</td>
+                <td className={tdClass} data-label="Artículo">{i.articulo}</td>
+                <td className={tdClass} data-label="Comprado (kg)">{i.comprado.toFixed(2)}</td>
+                <td className={tdClass} data-label="Vendido (kg)">{i.vendido.toFixed(2)}</td>
+                <td className={tdClass} data-label="Disponible (kg)">{i.disponible.toFixed(2)}</td>
               </tr>
             ))}
             {inventario.length === 0 && (

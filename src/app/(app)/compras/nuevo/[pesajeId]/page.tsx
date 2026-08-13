@@ -44,7 +44,16 @@ export default async function NuevaCompraPage({
         action={crearCompra}
         submitLabel="Registrar compra"
         hiddenFields={{ pesajeId: pesaje.id }}
+        defaultValues={{ fechaOperacion: new Date().toISOString().slice(0, 10) }}
         fields={[
+          {
+            name: "fechaOperacion",
+            label: "Fecha de la compra",
+            type: "date",
+            required: true,
+            helpText:
+              "Precargada con hoy — ajústala si la compra se cierra en una fecha distinta a la de este pesaje. Se usa también al enviar a NetSuite.",
+          },
           {
             name: "precioUnitarioKg",
             label: "Precio por kg ($)",

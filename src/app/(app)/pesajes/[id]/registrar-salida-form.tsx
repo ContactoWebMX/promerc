@@ -28,7 +28,7 @@ export function RegistrarSalidaForm({
   const fallaRed = useFallaRed(pending, state);
 
   return (
-    <Card className="max-w-md">
+    <Card className="max-w-2xl">
       <form action={action} className="flex flex-col gap-5">
         <input type="hidden" name="id" value={pesajeId} />
 
@@ -41,32 +41,34 @@ export function RegistrarSalidaForm({
         </div>
 
         <FormSection title="Carga">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="articuloId" className={labelClass}>
-              Artículo
-            </label>
-            <select id="articuloId" name="articuloId" required className={inputClass}>
-              <option value="">—</option>
-              {articulos.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre}
-                </option>
-              ))}
-            </select>
-            {state?.errors?.articuloId && (
-              <p className="text-sm text-danger">{state.errors.articuloId[0]}</p>
-            )}
-          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="articuloId" className={labelClass}>
+                Artículo
+              </label>
+              <select id="articuloId" name="articuloId" required className={inputClass}>
+                <option value="">—</option>
+                {articulos.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nombre}
+                  </option>
+                ))}
+              </select>
+              {state?.errors?.articuloId && (
+                <p className="text-sm text-danger">{state.errors.articuloId[0]}</p>
+              )}
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="clienteDestinoReferencia" className={labelClass}>
-              Destino (referencia)
-            </label>
-            <input
-              id="clienteDestinoReferencia"
-              name="clienteDestinoReferencia"
-              className={inputClass}
-            />
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="clienteDestinoReferencia" className={labelClass}>
+                Destino (referencia)
+              </label>
+              <input
+                id="clienteDestinoReferencia"
+                name="clienteDestinoReferencia"
+                className={inputClass}
+              />
+            </div>
           </div>
 
           {unidadesEmpaque.length > 0 && (

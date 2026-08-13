@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, canAccessUbicacion } from "@/lib/auth/dal";
 import { Card, PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
-import { inputClass, labelClass } from "@/components/ui/field";
 import { ActionDialog } from "@/components/ui/action-dialog";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { CatalogForm } from "@/components/catalog-form";
@@ -40,7 +39,12 @@ export default async function CompraDetailPage({
 
   const asignado =
     compra.lote?.movimientos.reduce((s, m) => s + Number(m.pesoAsignadoKg), 0) ?? 0;
-  const puedeAnularOEliminar =
+  // Eliminar ya es seguro aunque se haya enviado a NetSuite (eliminarCompra
+  // borra allá primero y aborta si NetSuite lo rechaza). Anular no tiene un
+  // equivalente tan directo en NetSuite (cerrar una orden depende de cómo
+  // esté configurado el flujo de aprobación de cada cuenta) — se bloquea y
+  // se pide cancelarla allá manualmente primero.
+  const puedeEliminar =
     usuario.role === "ADMIN" && asignado === 0 && compra.estado !== "CANCELADA";
   const puedeEnviarANetSuite =
     (usuario.role === "ADMIN" || usuario.role === "SUPERVISOR") &&
@@ -143,6 +147,13 @@ export default async function CompraDetailPage({
                 }}
                 fields={[
                   {
+                    name: "fechaOperacion",
+                    label: "Fecha de operación",
+                    type: "date",
+                    required: true,
+                    helpText: "Fecha real de la compra (ticket) — se usa también al enviar a NetSuite.",
+                  },
+                  {
                     name: "precioUnitarioKg",
                     label: "Precio por kg ($)",
                     type: "number",
@@ -150,34 +161,34 @@ export default async function CompraDetailPage({
                     min: 0,
                     step: 0.01,
                   },
-                  {
-                    name: "fechaOperacion",
-                    label: "Fecha de operación",
-                    type: "date",
-                    required: true,
-                    helpText: "Fecha real de la compra (ticket) — se usa también al enviar a NetSuite.",
-                  },
                   { name: "motivo", label: "Motivo de la corrección", required: true },
                 ]}
               />
             </ActionDialog>
           )}
 
-          {puedeAnularOEliminar ? (
+          {puedeEliminar ? (
             <>
-              <ActionDialog
-                label="Anular compra"
-                tone="danger"
-                title="Anular compra"
-                description={`Ticket ${compra.pesaje.folioTicket} — importe $${compra.importeTotal.toString()}. Se conserva el registro, con el motivo, en la bitácora de auditoría.`}
-              >
-                <CatalogForm
-                  action={anularCompra}
-                  submitLabel="Anular compra"
-                  hiddenId={compra.id}
-                  fields={[{ name: "motivo", label: "Motivo de la anulación", required: true }]}
-                />
-              </ActionDialog>
+              {compra.netsuiteOrderId ? (
+                <p className="text-sm text-muted">
+                  Ya se envió a NetSuite — cancélala allá primero si necesitas anularla aquí.
+                  Eliminar sigue disponible y también la borra en NetSuite.
+                </p>
+              ) : (
+                <ActionDialog
+                  label="Anular compra"
+                  tone="danger"
+                  title="Anular compra"
+                  description={`Ticket ${compra.pesaje.folioTicket} — importe $${compra.importeTotal.toString()}. Se conserva el registro, con el motivo, en la bitácora de auditoría.`}
+                >
+                  <CatalogForm
+                    action={anularCompra}
+                    submitLabel="Anular compra"
+                    hiddenId={compra.id}
+                    fields={[{ name: "motivo", label: "Motivo de la anulación", required: true }]}
+                  />
+                </ActionDialog>
+              )}
 
               <ActionDialog
                 label="Eliminar compra"
@@ -185,22 +196,12 @@ export default async function CompraDetailPage({
                 title="Eliminar compra"
                 description={`Ticket ${compra.pesaje.folioTicket} — importe $${compra.importeTotal.toString()}. Borra el registro por completo, no se puede deshacer.`}
               >
-                <form action={eliminarCompra} className="flex flex-col gap-2">
-                  <input type="hidden" name="id" value={compra.id} />
-                  <label htmlFor="motivoEliminar" className={labelClass}>
-                    Motivo
-                  </label>
-                  <input
-                    id="motivoEliminar"
-                    name="motivo"
-                    placeholder="Motivo"
-                    required
-                    className={inputClass}
-                  />
-                  <button type="submit" className={buttonClass("danger")}>
-                    Eliminar compra
-                  </button>
-                </form>
+                <CatalogForm
+                  action={eliminarCompra}
+                  submitLabel="Eliminar compra"
+                  hiddenId={compra.id}
+                  fields={[{ name: "motivo", label: "Motivo de la eliminación", required: true }]}
+                />
               </ActionDialog>
             </>
           ) : (

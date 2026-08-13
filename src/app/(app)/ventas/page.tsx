@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -63,13 +63,14 @@ export default async function VentasPage({
   const perPage = resolverPorPagina(params.perPage);
   const pagina = Math.max(1, Number(params.page) || 1);
 
-  // Filtra por pesoReportadoEn (fecha real de la operación); las ventas
-  // todavía en Borrador no la tienen, así que para esas se usa createdAt —
-  // de lo contrario un filtro de fecha las escondería de la lista.
+  // Filtra por pesoReportadoEn (fecha real en que se reportó el peso, la más
+  // precisa) cuando existe; las ventas todavía en Borrador no la tienen, así
+  // que para esas se usa fechaOperacion (fecha de la venta, siempre presente)
+  // — de lo contrario un filtro de fecha las escondería de la lista.
   const rangoFecha = { gte: desde, lte: hasta };
   const where: Prisma.VentaWhereInput = {
     ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
-    OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, createdAt: rangoFecha }],
+    OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, fechaOperacion: rangoFecha }],
   };
 
   const [ventas, total] = await Promise.all([
@@ -157,7 +158,7 @@ export default async function VentasPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <SortableHeader label="Fecha" field="fecha" {...sortableProps} />
             <SortableHeader label="Cliente" field="cliente" {...sortableProps} />
@@ -172,20 +173,20 @@ export default async function VentasPage({
         <tbody>
           {ventas.map((v) => (
             <tr key={v.id} className={trClass}>
-              <td className={tdClass}>
-                {(v.pesoReportadoEn ?? v.createdAt).toLocaleDateString("es-MX")}
+              <td className={tdClass} data-label="Fecha">
+                {(v.pesoReportadoEn ?? v.fechaOperacion).toLocaleDateString("es-MX")}
               </td>
-              <td className={tdClass}>{v.cliente.nombre}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Cliente">{v.cliente.nombre}</td>
+              <td className={tdClass} data-label="Estado">
                 <EstadoBadge
                   label={ESTADO_CONFIG[v.estado]?.label ?? v.estado}
                   tone={ESTADO_CONFIG[v.estado]?.tone ?? "neutral"}
                 />
               </td>
-              <td className={tdClass}>{v.articulo.nombre}</td>
-              <td className={tdClass}>{v.pesoVendidoKg.toString()}</td>
-              <td className={tdClass}>${v.importeTotal.toString()}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Artículo">{v.articulo.nombre}</td>
+              <td className={tdClass} data-label="Vendido (kg)">{v.pesoVendidoKg.toString()}</td>
+              <td className={tdClass} data-label="Importe">${v.importeTotal.toString()}</td>
+              <td className={tdClass} data-label="NetSuite">
                 {v.netsuiteOrderId ? (
                   <EstadoBadge
                     label={v.netsuiteOrderNumber ?? "Enviada"}

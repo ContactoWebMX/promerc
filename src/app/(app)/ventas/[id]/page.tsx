@@ -94,6 +94,8 @@ export default async function VentaDetailPage({
 
       <Card>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <dt className="text-muted">Fecha de la venta</dt>
+          <dd>{venta.fechaOperacion.toLocaleDateString("es-MX")}</dd>
           <dt className="text-muted">Ubicación</dt>
           <dd>{venta.ubicacion.nombre}</dd>
           <dt className="text-muted">Artículo</dt>
@@ -121,7 +123,7 @@ export default async function VentaDetailPage({
           </dd>
           {venta.pesoReportadoClienteKg && (
             <>
-              <dt className="text-muted">Fecha de operación</dt>
+              <dt className="text-muted">Fecha en que se reportó el peso</dt>
               <dd>{venta.pesoReportadoEn?.toLocaleDateString("es-MX") ?? "—"}</dd>
               <dt className="text-muted">Peso reportado por cliente</dt>
               <dd>{venta.pesoReportadoClienteKg.toString()} kg</dd>
@@ -266,8 +268,16 @@ export default async function VentaDetailPage({
                 pesoReportadoClienteKg: venta.pesoReportadoClienteKg?.toString() ?? "",
                 pesoReportadoEn: venta.pesoReportadoEn?.toISOString().slice(0, 10) ?? "",
                 motivoDiferencia: venta.motivoDiferencia ?? "",
+                fechaOperacion: venta.fechaOperacion.toISOString().slice(0, 10),
               }}
               fields={[
+                {
+                  name: "fechaOperacion",
+                  label: "Fecha de la venta",
+                  type: "date",
+                  required: true,
+                  helpText: "Fecha real de la venta (independiente de cuándo se reportó el peso).",
+                },
                 {
                   name: "precioUnitarioKg",
                   label: "Precio por kg ($)",
@@ -279,17 +289,17 @@ export default async function VentaDetailPage({
                 ...(venta.estado !== "BORRADOR"
                   ? [
                       {
+                        name: "pesoReportadoEn",
+                        label: "Fecha en que se reportó el peso",
+                        type: "date" as const,
+                        helpText: "Se usa también al enviar a NetSuite (si ya se reportó el peso).",
+                      },
+                      {
                         name: "pesoReportadoClienteKg",
                         label: "Peso reportado por cliente (kg)",
                         type: "number" as const,
                         min: 0,
                         step: 0.01,
-                      },
-                      {
-                        name: "pesoReportadoEn",
-                        label: "Fecha de operación",
-                        type: "date" as const,
-                        helpText: "Fecha real en que se reportó el peso — se usa también al enviar a NetSuite.",
                       },
                       {
                         name: "motivoDiferencia",

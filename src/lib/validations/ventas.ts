@@ -11,6 +11,7 @@ export const crearVentaSchema = z.object({
     .positive({ error: "Debe ser mayor a 0." }),
   operadorNombre: z.string().trim().nullish(),
   placas: z.string().trim().nullish(),
+  fechaOperacion: z.string().min(1, { error: "Requerido" }),
 });
 
 export const reportarPesoVentaSchema = z.object({
@@ -35,5 +36,6 @@ export const corregirVentaSchema = z.object({
     .nullish(),
   pesoReportadoEn: z.string().trim().nullish(),
   motivoDiferencia: z.string().trim().nullish(),
+  fechaOperacion: z.string().min(1, { error: "Requerido" }),
   motivo: z.string().min(1, { error: "Indica el motivo de la corrección." }).trim(),
 });

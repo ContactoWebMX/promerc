@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -87,7 +87,7 @@ export default async function PesajesPage({
       orderBy: ordenarPor(sort, dir),
       skip: (pagina - 1) * perPage,
       take: perPage,
-      include: { ubicacion: true, proveedor: true, articulo: true },
+      include: { ubicacion: true, proveedor: true, articulo: true, compra: { select: { id: true } } },
     }),
     prisma.pesaje.count({ where }),
   ]);
@@ -169,7 +169,7 @@ export default async function PesajesPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <SortableHeader label="Fecha" field="fecha" {...sortableProps} />
             <SortableHeader label="Folio ticket" field="folio" {...sortableProps} />
@@ -181,25 +181,39 @@ export default async function PesajesPage({
             <SortableHeader label="Artículo" field="articulo" {...sortableProps} />
             <SortableHeader label="Tara (kg)" field="tara" {...sortableProps} />
             <SortableHeader label="Neto (kg)" field="neto" {...sortableProps} />
+            <th className={thClass}>Compra</th>
             <th className={thClass} />
           </tr>
         </thead>
         <tbody>
           {pesajes.map((p) => (
             <tr key={p.id} className={trClass}>
-              <td className={tdClass}>{p.taraCapturadaEn.toLocaleDateString("es-MX")}</td>
-              <td className={tdClass}>{p.folioTicket}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Fecha">{p.taraCapturadaEn.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass} data-label="Folio ticket">{p.folioTicket}</td>
+              <td className={tdClass} data-label="Estado">
                 <EstadoBadge
                   label={ESTADO_CONFIG[p.estado]?.label ?? p.estado}
                   tone={ESTADO_CONFIG[p.estado]?.tone ?? "neutral"}
                 />
               </td>
-              {!soloMiUbicacion && <td className={tdClass}>{p.ubicacion.nombre}</td>}
-              <td className={tdClass}>{p.proveedor.nombre}</td>
-              <td className={tdClass}>{p.articulo?.nombre ?? "—"}</td>
-              <td className={tdClass}>{p.taraKg.toString()}</td>
-              <td className={tdClass}>{p.netoKg?.toString() ?? "—"}</td>
+              {!soloMiUbicacion && <td className={tdClass} data-label="Ubicación">{p.ubicacion.nombre}</td>}
+              <td className={tdClass} data-label="Proveedor">{p.proveedor.nombre}</td>
+              <td className={tdClass} data-label="Artículo">{p.articulo?.nombre ?? "—"}</td>
+              <td className={tdClass} data-label="Tara (kg)">{p.taraKg.toString()}</td>
+              <td className={tdClass} data-label="Neto (kg)">{p.netoKg?.toString() ?? "—"}</td>
+              <td className={tdClass} data-label="Compra">
+                {p.compra ? (
+                  <Link href={`/compras/${p.compra.id}`} className={buttonClass("link")}>
+                    Ver compra
+                  </Link>
+                ) : p.estado === "COMPLETO" ? (
+                  <Link href={`/compras/nuevo/${p.id}`} className={buttonClass("link")}>
+                    Registrar
+                  </Link>
+                ) : (
+                  "—"
+                )}
+              </td>
               <td className={tdClass}>
                 <Link href={`/pesajes/${p.id}`} className={buttonClass("link")}>
                   Ver
@@ -209,7 +223,7 @@ export default async function PesajesPage({
           ))}
           {pesajes.length === 0 && (
             <tr>
-              <td colSpan={soloMiUbicacion ? 8 : 9} className={`${tdClass} text-center text-muted`}>
+              <td colSpan={soloMiUbicacion ? 9 : 10} className={`${tdClass} text-center text-muted`}>
                 Sin pesajes con estos filtros.
               </td>
             </tr>

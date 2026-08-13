@@ -29,7 +29,7 @@ export async function GET(request: Request) {
           }
         : {}),
     },
-    include: { ubicacion: true, proveedor: true, articulo: true },
+    include: { ubicacion: true, proveedor: true, articulo: true, compra: { select: { id: true } } },
     orderBy: { taraCapturadaEn: "desc" },
   });
 
@@ -42,6 +42,7 @@ export async function GET(request: Request) {
     Tara_kg: Number(p.taraKg),
     Neto_kg: p.netoKg ? Number(p.netoKg) : "",
     Estado: ESTADO_LABELS[p.estado] ?? p.estado,
+    Compra_ID: p.compra?.id ?? "",
   }));
 
   const buffer = buildWorkbook([{ name: "Pesajes", rows }]);

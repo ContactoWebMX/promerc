@@ -212,3 +212,32 @@ export async function crearOrdenVenta(input: {
   const payload = construirPayloadOrdenVenta({ ...input, subsidiaryId });
   return postRecord("salesorder", payload);
 }
+
+// NetSuite rechaza el DELETE (con 4xx) si la orden ya tiene registros
+// relacionados (factura, recepción, etc.) — el error se deja propagar tal
+// cual para que quien llama decida si aborta la eliminación local también,
+// en vez de dejar la orden huérfana allá.
+async function deleteRecord(
+  recordType: "purchaseorder" | "salesorder",
+  netsuiteId: string,
+): Promise<void> {
+  const accountId = requerido("NETSUITE_ACCOUNT_ID");
+  const url = `https://${accountId}.suitetalk.api.netsuite.com/services/rest/record/v1/${recordType}/${netsuiteId}`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      Authorization: firmarSolicitudTBA("DELETE", url),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `NetSuite rechazó eliminar la orden (${response.status}): ${await response.text()}`,
+    );
+  }
+}
+
+export async function eliminarOrdenCompra(netsuiteId: string): Promise<void> {
+  return deleteRecord("purchaseorder", netsuiteId);
+}

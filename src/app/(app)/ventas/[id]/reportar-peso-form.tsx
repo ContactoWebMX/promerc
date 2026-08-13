@@ -49,6 +49,26 @@ export function ReportarPesoForm({
         </div>
 
         <div className="flex flex-col gap-1">
+          <label htmlFor="pesoReportadoEn" className={labelClass}>
+            Fecha en que se reportó el peso
+          </label>
+          <input
+            id="pesoReportadoEn"
+            name="pesoReportadoEn"
+            type="date"
+            defaultValue={fechaHoy}
+            required
+            className={inputClass}
+          />
+          <p className="text-xs text-muted">
+            Precargada con hoy — ajústala si el cliente reportó el peso en otra fecha.
+          </p>
+          {state?.errors?.pesoReportadoEn && (
+            <p className="text-sm text-danger">{state.errors.pesoReportadoEn[0]}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1">
           <label htmlFor="pesoReportadoClienteKg" className={labelClass}>
             Peso reportado por el cliente (kg)
           </label>
@@ -67,26 +87,6 @@ export function ReportarPesoForm({
             <p className="text-sm text-danger">
               {state.errors.pesoReportadoClienteKg[0]}
             </p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="pesoReportadoEn" className={labelClass}>
-            Fecha en que se reportó el peso
-          </label>
-          <input
-            id="pesoReportadoEn"
-            name="pesoReportadoEn"
-            type="date"
-            defaultValue={fechaHoy}
-            required
-            className={inputClass}
-          />
-          <p className="text-xs text-muted">
-            Precargada con hoy — ajústala si el cliente reportó el peso en otra fecha.
-          </p>
-          {state?.errors?.pesoReportadoEn && (
-            <p className="text-sm text-danger">{state.errors.pesoReportadoEn[0]}</p>
           )}
         </div>
 

@@ -300,10 +300,17 @@ model Venta {
   diferenciaKg     Decimal @default(0) @db.Decimal(10, 2)
   motivoDiferencia String? // obligatorio en la app si diferenciaKg != 0
 
+  // Fecha real en que se registra la venta (puede ser días después de que
+  // se asignó el lote, si la captura se atrasa) — mismo criterio que
+  // Compra.fechaOperacion. Se captura al crear la venta, editable después
+  // vía corregirVenta.
+  fechaOperacion DateTime
+
   // Fecha real en que se reportó el peso (ver reportarPesoVenta) — null
-  // mientras sigue en Borrador. createdAt es cuándo se creó la venta, que
-  // puede ser días antes si el cliente tarda en reportar. Corregible por
-  // un ADMIN (ver corregirVenta) si hace falta ajustarla después.
+  // mientras sigue en Borrador. Una vez seteada, es la fecha más precisa de
+  // la operación (mejor que fechaOperacion) para reportes/exports/NetSuite.
+  // Corregible por un ADMIN (ver corregirVenta) si hace falta ajustarla
+  // después.
   pesoReportadoEn DateTime?
 
   precioUnitarioKg   Decimal     @db.Decimal(10, 2)

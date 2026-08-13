@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { ListPagination } from "@/components/ui/list-pagination";
 import {
   resolverRangoFecha,
@@ -181,7 +181,7 @@ export default async function AuditoriaPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <th className={thClass}>Fecha</th>
             <th className={thClass}>Usuario</th>
@@ -199,11 +199,11 @@ export default async function AuditoriaPage({
             const tieneDetalle = r.detalleAnterior !== null || r.detalleNuevo !== null;
             return (
               <tr key={r.id} className={trClass}>
-                <td className={tdClass}>{r.createdAt.toLocaleString("es-MX")}</td>
-                <td className={tdClass}>{r.usuario.nombre}</td>
-                <td className={tdClass}>{r.entidad}</td>
-                <td className={tdClass}>{ACCIONES_AUDITORIA[r.accion] ?? r.accion}</td>
-                <td className={tdClass}>{r.motivo ?? "—"}</td>
+                <td className={tdClass} data-label="Fecha">{r.createdAt.toLocaleString("es-MX")}</td>
+                <td className={tdClass} data-label="Usuario">{r.usuario.nombre}</td>
+                <td className={tdClass} data-label="Entidad">{r.entidad}</td>
+                <td className={tdClass} data-label="Acción">{ACCIONES_AUDITORIA[r.accion] ?? r.accion}</td>
+                <td className={tdClass} data-label="Motivo">{r.motivo ?? "—"}</td>
                 <td className={tdClass}>
                   <div className="flex flex-col items-start gap-1">
                     {ruta && (

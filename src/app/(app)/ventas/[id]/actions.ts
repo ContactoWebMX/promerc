@@ -132,6 +132,7 @@ export async function corregirVenta(
     pesoReportadoClienteKg: formData.get("pesoReportadoClienteKg"),
     pesoReportadoEn: formData.get("pesoReportadoEn"),
     motivoDiferencia: formData.get("motivoDiferencia"),
+    fechaOperacion: formData.get("fechaOperacion"),
     motivo: formData.get("motivo"),
   });
   if (!validated.success) {
@@ -143,9 +144,13 @@ export async function corregirVenta(
     diferenciaKg: venta.diferenciaKg.toString(),
     importeTotal: venta.importeTotal.toString(),
     estado: venta.estado,
+    fechaOperacion: venta.fechaOperacion.toISOString(),
   };
 
-  const data: Prisma.VentaUpdateInput = { precioUnitarioKg: validated.data.precioUnitarioKg };
+  const data: Prisma.VentaUpdateInput = {
+    precioUnitarioKg: validated.data.precioUnitarioKg,
+    fechaOperacion: new Date(`${validated.data.fechaOperacion}T00:00:00`),
+  };
 
   if (venta.estado === "BORRADOR") {
     data.importeTotal = Number(
@@ -339,7 +344,7 @@ export async function enviarVentaANetSuite(
       netsuiteItemId: venta.articulo.netsuiteItemId,
       pesoKg: Number(venta.pesoReportadoClienteKg ?? 0),
       precioUnitarioKg: Number(venta.precioUnitarioKg),
-      tranDate: (venta.pesoReportadoEn ?? venta.createdAt).toISOString().slice(0, 10),
+      tranDate: (venta.pesoReportadoEn ?? venta.fechaOperacion).toISOString().slice(0, 10),
       employeeId: usuario.netsuiteEmployeeId,
       locationId: venta.ubicacion.netsuiteLocationId,
       departmentId: centroAprobacion.netsuiteId,

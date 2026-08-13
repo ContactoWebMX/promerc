@@ -83,7 +83,7 @@ export function CerrarPesajeForm({
   }
 
   return (
-    <Card className="max-w-md">
+    <Card className="max-w-2xl">
       <form action={action} className="flex flex-col gap-5">
         <input type="hidden" name="id" value={pesajeId} />
 
@@ -96,83 +96,6 @@ export function CerrarPesajeForm({
         </div>
 
         <FormSection title="Ticket de báscula">
-          <FotoInput
-            id="foto"
-            name="foto"
-            label="Foto del ticket de báscula"
-            required
-            helpText="Al subir la foto se intentan llenar automáticamente los campos de abajo (peso, pesador, observaciones) — revísalos antes de guardar."
-            error={state?.errors?.foto?.[0]}
-            onFileChange={handleFotoChange}
-          />
-          {ocrStatus === "leyendo" && (
-            <p className="text-sm text-muted">Leyendo ticket con IA...</p>
-          )}
-          {ocrStatus === "leyendo-offline" && (
-            <p className="text-sm text-muted">
-              Sin conexión con el servicio en línea — leyendo el ticket en el
-              celular (puede tardar unos segundos la primera vez)...
-            </p>
-          )}
-          {ocrStatus === "offline" && (
-            <p className="text-sm font-medium text-muted">
-              Ticket leído sin conexión (peso) — es una lectura aproximada,
-              revísalo antes de guardar.
-            </p>
-          )}
-          {ocrStatus === "error" && (
-            <p className="text-sm text-danger">
-              {ocrError ?? "No se pudo leer el ticket automáticamente. Llena los campos manualmente."}
-            </p>
-          )}
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="grossKg" className={labelClass}>
-              Peso cargado (kg)
-            </label>
-            <input
-              id="grossKg"
-              name="grossKg"
-              type="number"
-              min={0}
-              step={0.01}
-              required
-              ref={grossKgRef}
-              className={inputClass}
-            />
-            {state?.errors?.grossKg && (
-              <p className="text-sm text-danger">{state.errors.grossKg[0]}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="pesadorNombre" className={labelClass}>
-              Nombre del pesador
-            </label>
-            <input
-              id="pesadorNombre"
-              name="pesadorNombre"
-              required
-              ref={pesadorNombreRef}
-              className={inputClass}
-            />
-            {state?.errors?.pesadorNombre && (
-              <p className="text-sm text-danger">{state.errors.pesadorNombre[0]}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="observaciones" className={labelClass}>
-              Observaciones
-            </label>
-            <input
-              id="observaciones"
-              name="observaciones"
-              ref={observacionesRef}
-              className={inputClass}
-            />
-          </div>
-
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1">
               <label htmlFor="fechaTicket" className={labelClass}>
@@ -204,6 +127,85 @@ export function CerrarPesajeForm({
           <p className="text-xs text-muted">
             Precargada con hoy — ajústala si el ticket físico llegó días después de pesar.
           </p>
+
+          <FotoInput
+            id="foto"
+            name="foto"
+            label="Foto del ticket de báscula"
+            required
+            helpText="Al subir la foto se intentan llenar automáticamente los campos de abajo (peso, pesador, observaciones) — revísalos antes de guardar."
+            error={state?.errors?.foto?.[0]}
+            onFileChange={handleFotoChange}
+          />
+          {ocrStatus === "leyendo" && (
+            <p className="text-sm text-muted">Leyendo ticket con IA...</p>
+          )}
+          {ocrStatus === "leyendo-offline" && (
+            <p className="text-sm text-muted">
+              Sin conexión con el servicio en línea — leyendo el ticket en el
+              celular (puede tardar unos segundos la primera vez)...
+            </p>
+          )}
+          {ocrStatus === "offline" && (
+            <p className="text-sm font-medium text-muted">
+              Ticket leído sin conexión (peso) — es una lectura aproximada,
+              revísalo antes de guardar.
+            </p>
+          )}
+          {ocrStatus === "error" && (
+            <p className="text-sm text-danger">
+              {ocrError ?? "No se pudo leer el ticket automáticamente. Llena los campos manualmente."}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="grossKg" className={labelClass}>
+                Peso cargado (kg)
+              </label>
+              <input
+                id="grossKg"
+                name="grossKg"
+                type="number"
+                min={0}
+                step={0.01}
+                required
+                ref={grossKgRef}
+                className={inputClass}
+              />
+              {state?.errors?.grossKg && (
+                <p className="text-sm text-danger">{state.errors.grossKg[0]}</p>
+              )}
+            </div>
+
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="pesadorNombre" className={labelClass}>
+                Nombre del pesador
+              </label>
+              <input
+                id="pesadorNombre"
+                name="pesadorNombre"
+                required
+                ref={pesadorNombreRef}
+                className={inputClass}
+              />
+              {state?.errors?.pesadorNombre && (
+                <p className="text-sm text-danger">{state.errors.pesadorNombre[0]}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="observaciones" className={labelClass}>
+              Observaciones
+            </label>
+            <input
+              id="observaciones"
+              name="observaciones"
+              ref={observacionesRef}
+              className={inputClass}
+            />
+          </div>
         </FormSection>
 
         {state?.message && <p className="text-sm text-danger">{state.message}</p>}

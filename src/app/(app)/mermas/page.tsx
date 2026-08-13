@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge } from "@/components/ui/estado-badge";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -95,7 +95,12 @@ export default async function MermasPage({
     where: {
       ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
       diferenciaKg: { not: 0 },
-      createdAt: { gte: desde, lte: hasta },
+      // diferenciaKg solo se fija en reportarPesoVenta, que también fija
+      // pesoReportadoEn en el mismo paso — siempre viene seteado aquí.
+      OR: [
+        { pesoReportadoEn: { gte: desde, lte: hasta } },
+        { pesoReportadoEn: null, fechaOperacion: { gte: desde, lte: hasta } },
+      ],
     },
     include: {
       cliente: true,
@@ -108,7 +113,7 @@ export default async function MermasPage({
     const diferenciaKg = Number(v.diferenciaKg);
     return {
       id: v.id,
-      fecha: v.createdAt,
+      fecha: v.pesoReportadoEn ?? v.fechaOperacion,
       clienteNombre: v.cliente.nombre,
       articuloNombre: v.articulo.nombre,
       lotes: [...new Set(v.movimientos.map((m) => m.lote.folio))].join(", "),
@@ -206,7 +211,7 @@ export default async function MermasPage({
       </form>
 
       <TableWrapper>
-        <thead>
+        <thead className={theadClass}>
           <tr>
             <SortableHeader label="Fecha" field="fecha" {...sortableProps} />
             <SortableHeader label="Venta" field="cliente" {...sortableProps} />
@@ -223,36 +228,36 @@ export default async function MermasPage({
         <tbody>
           {enPagina.map((f) => (
             <tr key={f.id} className={trClass}>
-              <td className={tdClass}>{f.fecha.toLocaleDateString("es-MX")}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Fecha">{f.fecha.toLocaleDateString("es-MX")}</td>
+              <td className={tdClass} data-label="Venta">
                 <Link href={`/ventas/${f.id}`} className={buttonClass("link")}>
                   {f.clienteNombre}
                 </Link>
               </td>
-              <td className={tdClass}>{f.lotes || "—"}</td>
-              <td className={tdClass}>{f.articuloNombre}</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Lote(s)">{f.lotes || "—"}</td>
+              <td className={tdClass} data-label="Artículo">{f.articuloNombre}</td>
+              <td className={tdClass} data-label="Diferencia (kg)">
                 {f.diferenciaKg > 0 ? "+" : ""}
                 {f.diferenciaKg.toFixed(2)}
               </td>
-              <td className={tdClass}>{f.diferenciaPct.toFixed(1)}%</td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Diferencia (%)">{f.diferenciaPct.toFixed(1)}%</td>
+              <td className={tdClass} data-label="Diferencia ($)">
                 {f.diferenciaMonto > 0 ? "+" : ""}${f.diferenciaMonto.toFixed(2)}
               </td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Tipo">
                 <EstadoBadge
                   label={f.tipo === "MERMA" ? "Merma" : "Sobrante"}
                   tone={f.tipo === "MERMA" ? "danger" : "neutral"}
                 />
               </td>
-              <td className={tdClass}>
+              <td className={tdClass} data-label="Tolerancia">
                 {f.toleranciaExcedida ? (
                   <EstadoBadge label="Excedida" tone="danger" />
                 ) : (
                   "Dentro"
                 )}
               </td>
-              <td className={tdClass}>{f.motivoDiferencia ?? "—"}</td>
+              <td className={tdClass} data-label="Motivo">{f.motivoDiferencia ?? "—"}</td>
             </tr>
           ))}
           {enPagina.length === 0 && (

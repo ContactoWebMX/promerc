@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     where: {
       ...(soloMiUbicacion ? { ubicacionId: usuario.ubicacionId ?? -1 } : {}),
       ...(rangoFecha
-        ? { OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, createdAt: rangoFecha }] }
+        ? { OR: [{ pesoReportadoEn: rangoFecha }, { pesoReportadoEn: null, fechaOperacion: rangoFecha }] }
         : {}),
     },
     include: { cliente: true, articulo: true, ubicacion: true },
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   });
 
   const rows = ventas.map((v) => ({
-    Fecha: (v.pesoReportadoEn ?? v.createdAt).toLocaleDateString("es-MX"),
+    Fecha: (v.pesoReportadoEn ?? v.fechaOperacion).toLocaleDateString("es-MX"),
     Ubicacion: v.ubicacion.nombre,
     Cliente: v.cliente.nombre,
     Articulo: v.articulo.nombre,

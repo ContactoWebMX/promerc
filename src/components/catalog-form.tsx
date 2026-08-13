@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId } from "react";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass, labelClass } from "@/components/ui/field";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { Combobox } from "@/components/ui/combobox";
 import { useFallaRed } from "@/lib/use-falla-red";
 
 type Option = { value: string; label: string; group?: string };
@@ -33,54 +34,11 @@ type FieldConfig = {
   datalist?: string[];
 };
 
-// Selector con filtro por texto para catálogos largos (ej. lotes abiertos):
-// un input de texto + <datalist> de las opciones visibles, que resuelve el
-// id real a un input oculto por coincidencia exacta de label. A diferencia
-// de "select" no soporta <optgroup> (datalist no lo permite), por eso el
-// label de cada opción ya trae el grupo incluido (ver ventas/nuevo/page.tsx).
-function ComboboxField({
-  id,
-  name,
-  options,
-  required,
-  defaultValue,
-}: {
-  id: string;
-  name: string;
-  options: Option[];
-  required?: boolean;
-  defaultValue?: string;
-}) {
-  const porLabel = new Map(options.map((o) => [o.label, o.value]));
-  const labelInicial = options.find((o) => o.value === defaultValue)?.label ?? "";
-  const [texto, setTexto] = useState(labelInicial);
-  const valorId = porLabel.get(texto) ?? "";
-  const listId = `${id}-combobox-list`;
-
-  return (
-    <>
-      <input
-        id={id}
-        list={listId}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        placeholder="Escribe para buscar..."
-        autoComplete="off"
-        required={required}
-        className={inputClass}
-      />
-      <datalist id={listId}>
-        {options.map((o) => (
-          <option key={o.value} value={o.label} />
-        ))}
-      </datalist>
-      <input type="hidden" name={name} value={valorId} />
-      {texto.trim() !== "" && !valorId && (
-        <p className="text-xs text-muted">Ningún resultado coincide con ese texto.</p>
-      )}
-    </>
-  );
-}
+// Umbral a partir del cual el formulario deja de ser una sola columna
+// angosta: catálogos cortos (2-3 campos) se ven bien en max-w-sm, pero
+// formularios largos (ej. "Nueva venta", 6 campos) dejaban la mayoría de
+// una pantalla de escritorio vacía a la derecha.
+const CAMPOS_PARA_DOS_COLUMNAS = 5;
 
 export type CatalogFormState =
   | { errors?: Record<string, string[]>; message?: string }
@@ -116,9 +74,16 @@ export function CatalogForm({
   // enviar el form.
   const uid = useId();
   const fieldId = (name: string) => `${uid}-${name}`;
+  // Formularios cortos (catálogos) se quedan en una columna angosta; los
+  // largos (ej. Nueva venta) usan dos columnas en pantallas medianas+ en vez
+  // de dejar la mitad del escritorio vacía.
+  const dosColumnas = fields.length >= CAMPOS_PARA_DOS_COLUMNAS;
 
   return (
-    <form action={formAction} className="flex w-full max-w-sm flex-col gap-4">
+    <form
+      action={formAction}
+      className={`flex w-full flex-col gap-4 ${dosColumnas ? "max-w-2xl" : "max-w-sm"}`}
+    >
       {hiddenId !== undefined && (
         <input type="hidden" name="id" value={hiddenId} />
       )}
@@ -126,13 +91,14 @@ export function CatalogForm({
         Object.entries(hiddenFields).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}
+      <div className={dosColumnas ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : "flex flex-col gap-4"}>
       {fields.map((f) => (
         <div key={f.name} className="flex flex-col gap-1">
           <label htmlFor={fieldId(f.name)} className={labelClass}>
             {f.label}
           </label>
           {f.type === "combobox" ? (
-            <ComboboxField
+            <Combobox
               id={fieldId(f.name)}
               name={f.name}
               options={f.options ?? []}
@@ -200,6 +166,7 @@ export function CatalogForm({
           )}
         </div>
       ))}
+      </div>
 
       {state?.message && <p className="text-sm text-danger">{state.message}</p>}
 

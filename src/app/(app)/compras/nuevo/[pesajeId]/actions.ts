@@ -35,6 +35,7 @@ export async function crearCompra(
 
   const validated = crearCompraSchema.safeParse({
     precioUnitarioKg: formData.get("precioUnitarioKg"),
+    fechaOperacion: formData.get("fechaOperacion"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -42,6 +43,7 @@ export async function crearCompra(
 
   const netoKg = Number(pesaje.netoKg);
   const importeTotal = Number((validated.data.precioUnitarioKg * netoKg).toFixed(2));
+  const fechaOperacion = new Date(`${validated.data.fechaOperacion}T00:00:00`);
 
   const compra = await prisma.compra.create({
     data: {
@@ -51,9 +53,7 @@ export async function crearCompra(
       loteId: pesaje.loteId,
       precioUnitarioKg: validated.data.precioUnitarioKg,
       importeTotal,
-      // Se hereda de la fecha del ticket capturada al registrar el pesaje
-      // (taraCapturadaEn) — no se vuelve a pedir aquí.
-      fechaOperacion: pesaje.taraCapturadaEn,
+      fechaOperacion,
     },
   });
 

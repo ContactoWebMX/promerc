@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader, Card } from "@/components/ui/card";
 import { inputClass, labelClass } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button";
-import { TableWrapper, thClass, tdClass, trClass } from "@/components/ui/table";
+import { TableWrapper, theadClass, thClass, tdClass, trClass } from "@/components/ui/table";
 import { EstadoBadge, type EstadoTone } from "@/components/ui/estado-badge";
 
 const ESTADO_PESAJE: Record<string, { label: string; tone: EstadoTone }> = {
@@ -95,7 +95,7 @@ export default async function BuscarPage({
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-medium">Pesajes</h2>
           <TableWrapper>
-            <thead>
+            <thead className={theadClass}>
               <tr>
                 <th className={thClass}>Folio ticket</th>
                 <th className={thClass}>Ubicación</th>
@@ -107,10 +107,10 @@ export default async function BuscarPage({
             <tbody>
               {pesajes.map((p) => (
                 <tr key={p.id} className={trClass}>
-                  <td className={tdClass}>{p.folioTicket}</td>
-                  <td className={tdClass}>{p.ubicacion.nombre}</td>
-                  <td className={tdClass}>{p.proveedor.nombre}</td>
-                  <td className={tdClass}>
+                  <td className={tdClass} data-label="Folio ticket">{p.folioTicket}</td>
+                  <td className={tdClass} data-label="Ubicación">{p.ubicacion.nombre}</td>
+                  <td className={tdClass} data-label="Proveedor">{p.proveedor.nombre}</td>
+                  <td className={tdClass} data-label="Estado">
                     <EstadoBadge
                       label={ESTADO_PESAJE[p.estado]?.label ?? p.estado}
                       tone={ESTADO_PESAJE[p.estado]?.tone ?? "neutral"}
@@ -132,7 +132,7 @@ export default async function BuscarPage({
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-medium">Lotes</h2>
           <TableWrapper>
-            <thead>
+            <thead className={theadClass}>
               <tr>
                 <th className={thClass}>Folio</th>
                 <th className={thClass}>Ubicación</th>
@@ -144,10 +144,10 @@ export default async function BuscarPage({
             <tbody>
               {lotes.map((l) => (
                 <tr key={l.id} className={trClass}>
-                  <td className={tdClass}>{l.folio}</td>
-                  <td className={tdClass}>{l.ubicacion.nombre}</td>
-                  <td className={tdClass}>{l.articulo.nombre}</td>
-                  <td className={tdClass}>
+                  <td className={tdClass} data-label="Folio">{l.folio}</td>
+                  <td className={tdClass} data-label="Ubicación">{l.ubicacion.nombre}</td>
+                  <td className={tdClass} data-label="Artículo">{l.articulo.nombre}</td>
+                  <td className={tdClass} data-label="Estado">
                     <EstadoBadge
                       label={ESTADO_LOTE[l.estado]?.label ?? l.estado}
                       tone={ESTADO_LOTE[l.estado]?.tone ?? "neutral"}
