@@ -64,6 +64,9 @@ model Ubicacion {
   compras  Compra[]
   ventas   Venta[]
   lotes    Lote[]
+
+  notificaciones     Notificacion[]
+  reglasNotificacion ReglaNotificacion[]
 }
 
 model Usuario {
@@ -88,6 +91,8 @@ model Usuario {
   firmas                     Firma[]
   auditLogs                  AuditLog[]
   resetTokens                PasswordResetToken[]
+  notificaciones             NotificacionDestinatario[]
+  reglasNotificacion         ReglaNotificacion[]
 }
 
 // Departamento de NetSuite ("department") usado como "Centro de Aprobación"
@@ -393,4 +398,69 @@ model AuditLog {
   createdAt       DateTime @default(now())
 
   @@index([entidad, entidadId])
+}
+
+enum TipoNotificacion {
+  PESAJE_COMPLETADO
+  COMPRA_REGISTRADA
+  VENTA_CERRADA
+  VENTA_REQUIERE_APROBACION
+}
+
+// Un registro por evento ocurrido (no por destinatario) — el resumen se
+// guarda una sola vez, sin filtrar por rol; el filtrado (ej. ocultar precio
+// para OPERADOR) ocurre al leer, ver resumenParaRol() en src/lib/notificaciones.ts.
+model Notificacion {
+  id          Int              @id @default(autoincrement())
+  tipo        TipoNotificacion
+  entidad     String // "Pesaje" | "Compra" | "Venta" — mismos valores que AuditLog.entidad
+  entidadId   Int
+  ubicacionId Int
+  ubicacion   Ubicacion        @relation(fields: [ubicacionId], references: [id])
+  resumen     Json
+  createdAt   DateTime         @default(now())
+
+  destinatarios NotificacionDestinatario[]
+
+  @@index([entidad, entidadId])
+}
+
+// Estado de entrega por destinatario — separado de Notificacion porque cada
+// quien lee y recibe correo de forma independiente.
+model NotificacionDestinatario {
+  id              Int          @id @default(autoincrement())
+  notificacionId  Int
+  notificacion    Notificacion @relation(fields: [notificacionId], references: [id])
+  usuarioId       Int
+  usuario         Usuario      @relation(fields: [usuarioId], references: [id])
+  leidoEn         DateTime?
+  requiereCorreo  Boolean // resuelto de ReglaNotificacion al crear — no se re-evalúa después
+  correoEnviadoEn DateTime?
+  correoIntentos  Int          @default(0)
+  correoError     String?
+  createdAt       DateTime     @default(now())
+
+  @@index([usuarioId, leidoEn])
+  @@index([requiereCorreo, correoEnviadoEn, correoIntentos])
+}
+
+// Configuración que arma el ADMIN: quién recibe qué. ubicacionId null =
+// aplica a todas las ubicaciones. Un usuario puede tener varias reglas para
+// el mismo tipo (ej. una específica de su sede y otra general) — al
+// resolver destinatarios se agrupan por usuario y los canales se combinan
+// con OR (ver resolverDestinatarios() en src/lib/notificaciones.ts), así
+// que tener más de una regla que aplique nunca "resta" un canal.
+model ReglaNotificacion {
+  id          Int              @id @default(autoincrement())
+  tipo        TipoNotificacion
+  usuarioId   Int
+  usuario     Usuario          @relation(fields: [usuarioId], references: [id])
+  ubicacionId Int?
+  ubicacion   Ubicacion?       @relation(fields: [ubicacionId], references: [id])
+  canalInApp  Boolean          @default(true)
+  canalCorreo Boolean          @default(false)
+  activo      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+
+  @@index([tipo, activo])
 }
