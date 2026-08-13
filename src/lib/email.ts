@@ -29,3 +29,25 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 
   await transporter.sendMail({ from, to, subject, text });
 }
+
+export async function enviarCorreo(params: {
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: { filename: string; content: Buffer }[];
+}) {
+  const from = process.env.SMTP_FROM ?? "PROMERC <no-reply@promerc.local>";
+
+  if (!transporter) {
+    console.log(`[email:dev] Para ${params.to} — ${params.subject}`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+    attachments: params.attachments,
+  });
+}
