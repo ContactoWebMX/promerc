@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { RoleUsuario } from "@/generated/prisma/enums";
+import { RoleUsuario, TipoNotificacion } from "@/generated/prisma/enums";
 
 export const ubicacionSchema = z.object({
   nombre: z.string().min(1, { error: "Requerido" }).trim(),
@@ -55,3 +55,13 @@ export const usuarioPasswordSchema = z
   .min(8, { error: "Debe tener al menos 8 caracteres." })
   .regex(/[a-zA-Z]/, { error: "Debe contener al menos una letra." })
   .regex(/[0-9]/, { error: "Debe contener al menos un número." });
+
+export const reglaNotificacionSchema = z.object({
+  tipo: z.enum(Object.values(TipoNotificacion) as [string, ...string[]], {
+    error: "Selecciona un tipo de evento.",
+  }),
+  usuarioId: z.string().min(1, { error: "Selecciona un usuario." }),
+  ubicacionId: z.string().nullish(),
+  canalInApp: z.enum(["true", "false"], { error: "Selecciona una opción." }),
+  canalCorreo: z.enum(["true", "false"], { error: "Selecciona una opción." }),
+});
