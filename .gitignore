@@ -57,8 +57,10 @@ next-env.d.ts
 .gstack/
 .impeccable/
 
-# docs internos (incluye llaves.txt con credenciales) — no se versionan
-/docs/
+# docs internos (incluye llaves.txt con credenciales) — no se versionan,
+# excepto docs/superpowers/ (specs de diseño, sin secretos)
+/docs/*
+!/docs/superpowers/
 
 # paquetes armados para subir a cPanel (se regeneran con build-for-cpanel.sh)
 /deploy.zip
