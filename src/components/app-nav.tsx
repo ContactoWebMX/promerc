@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonClass } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notification-bell";
 
 type NavLink = { href: string; label: string };
 
@@ -96,6 +97,7 @@ export function AppNav({
 
         <div className="hidden items-center gap-3 sm:flex">
           {usuarioRole !== "CLIENTE" && <BuscarForm />}
+          {usuarioRole !== "CLIENTE" && <NotificationBell />}
           <span className="text-sm text-muted">
             {usuarioNombre} · {usuarioRole}
           </span>
@@ -145,6 +147,7 @@ export function AppNav({
           )}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
             <div className="flex items-center gap-2">
+              {usuarioRole !== "CLIENTE" && <NotificationBell />}
               <span className="text-sm text-muted">
                 {usuarioNombre} · {usuarioRole}
               </span>
