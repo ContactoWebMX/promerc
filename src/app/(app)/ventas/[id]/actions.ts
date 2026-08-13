@@ -93,6 +93,11 @@ export async function reportarPesoVenta(
 
   if (foto instanceof File && foto.size > 0) {
     const comprobanteGuardado = await saveUpload(foto, `evidencia/venta/${id}`);
+    if (!comprobanteGuardado) {
+      return {
+        errors: { comprobante: ["El archivo no es una imagen válida (jpg, png o webp)."] },
+      };
+    }
     operaciones.push(
       prisma.evidencia.create({
         data: {

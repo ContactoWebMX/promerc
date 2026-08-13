@@ -12,7 +12,7 @@
     "start": "next start",
     "start:standalone": "node deploy/server.js",
     "lint": "eslint",
-    "test": "tsx --test src/lib/tolerancia.test.ts src/lib/netsuite.test.ts"
+    "test": "tsx --test src/lib/tolerancia.test.ts src/lib/netsuite.test.ts src/lib/storage.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",

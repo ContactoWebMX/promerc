@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireRole, canAccessUbicacion } from "@/lib/auth/dal";
-import { saveUpload } from "@/lib/storage";
+import { saveUpload, tipoImagenValido, TIPOS_FOTO } from "@/lib/storage";
 import { crearPesajeSchema } from "@/lib/validations/pesajes";
 import { combinarFechaHoraTicket } from "@/lib/ocr";
 import type { CatalogFormState } from "@/components/catalog-form";
@@ -37,6 +37,13 @@ export async function crearPesaje(
   if (!(foto instanceof File) || foto.size === 0) {
     return { errors: { foto: ["Sube la foto del ticket de báscula."] } };
   }
+  // Se valida el contenido real antes de crear el pesaje — la ruta de
+  // guardado depende de un id que todavía no existe en este punto, así que
+  // si se detectara inválido después de crearlo el registro quedaría
+  // huérfano sin evidencia.
+  if (!tipoImagenValido(Buffer.from(await foto.arrayBuffer()), TIPOS_FOTO)) {
+    return { errors: { foto: ["El archivo no es una imagen válida (jpg, png o webp)."] } };
+  }
 
   const { operadorNombre, placas } = validated.data;
 
@@ -66,6 +73,9 @@ export async function crearPesaje(
   });
 
   const fotoGuardada = await saveUpload(foto, `evidencia/pesaje/${pesaje.id}`);
+  if (!fotoGuardada) {
+    return { errors: { foto: ["El archivo no es una imagen válida (jpg, png o webp)."] } };
+  }
   await prisma.evidencia.create({
     data: {
       pesajeId: pesaje.id,

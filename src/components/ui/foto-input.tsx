@@ -3,6 +3,51 @@
 import { useRef, useState } from "react";
 import { buttonClass } from "@/components/ui/button";
 
+const MAX_DIMENSION = 2000;
+const CALIDAD_WEBP = 0.85;
+const EXT_BY_MIME: Record<string, string> = {
+  "image/webp": "webp",
+  "image/png": "png",
+  "image/jpeg": "jpg",
+};
+
+// Redimensiona y reconvierte a WebP en el navegador antes de subir — las
+// fotos de cámara del celular llegan a pesar varios MB, esto reduce lo que
+// viaja por la red y ocupa en el servidor sin intervención del usuario. Si
+// el navegador no soporta codificar WebP, canvas.toBlob cae a PNG (así lo
+// define la especificación); si decodificar falla por cualquier motivo, o el
+// resultado no queda más chico que el original, se usa el archivo original
+// tal cual — nunca bloquea la subida.
+async function comprimirImagen(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const escala = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * escala);
+    const height = Math.round(bitmap.height * escala);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", CALIDAD_WEBP),
+    );
+    if (!blob || blob.size >= file.size) return file;
+
+    const ext = EXT_BY_MIME[blob.type] ?? "webp";
+    const nombre = file.name.replace(/\.[^.]+$/, "") + `.${ext}`;
+    return new File([blob], nombre, { type: blob.type, lastModified: file.lastModified });
+  } catch {
+    return file;
+  }
+}
+
 // Tres <input type="file">: uno real (el que se envía con el form, sin
 // `capture`) y dos disparadores ocultos y ESTÁTICOS — uno con `capture`
 // fijo desde el primer render (botón "Tomar foto"), otro sin él (botón
@@ -34,15 +79,22 @@ export function FotoInput({
   const camaraRef = useRef<HTMLInputElement>(null);
   const archivoRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [comprimiendo, setComprimiendo] = useState(false);
 
-  function recibir(file: File | null) {
+  async function recibir(file: File | null) {
+    let final = file;
+    if (file) {
+      setComprimiendo(true);
+      final = await comprimirImagen(file);
+      setComprimiendo(false);
+    }
     if (realRef.current) {
       const dt = new DataTransfer();
-      if (file) dt.items.add(file);
+      if (final) dt.items.add(final);
       realRef.current.files = dt.files;
     }
-    setFileName(file?.name ?? null);
-    onFileChange?.(file);
+    setFileName(final?.name ?? null);
+    onFileChange?.(final);
   }
 
   return (
@@ -83,6 +135,7 @@ export function FotoInput({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
+          disabled={comprimiendo}
           onClick={() => camaraRef.current?.click()}
           className={buttonClass("primary", "sm")}
         >
@@ -90,6 +143,7 @@ export function FotoInput({
         </button>
         <button
           type="button"
+          disabled={comprimiendo}
           onClick={() => archivoRef.current?.click()}
           className={buttonClass("secondary", "sm")}
         >
@@ -97,7 +151,10 @@ export function FotoInput({
         </button>
       </div>
 
-      {fileName && <p className="text-xs text-muted">Seleccionado: {fileName}</p>}
+      {comprimiendo && <p className="text-xs text-muted">Comprimiendo imagen...</p>}
+      {fileName && !comprimiendo && (
+        <p className="text-xs text-muted">Seleccionado: {fileName}</p>
+      )}
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );

@@ -84,6 +84,9 @@ export async function registrarSalida(
     .filter((p) => p.cantidad > 0);
 
   const firmaSalidaGuardada = await saveDataUrl(firmaSalidaImagen, `firmas/salida_proveedor`);
+  if (!firmaSalidaGuardada) {
+    return { errors: { firmaSalidaImagen: ["La firma no es una imagen válida."] } };
+  }
 
   await prisma.$transaction([
     prisma.pesaje.update({
@@ -168,6 +171,9 @@ export async function cerrarPesaje(
   }
 
   const fotoGuardada = await saveUpload(foto, `evidencia/pesaje/${id}`);
+  if (!fotoGuardada) {
+    return { errors: { foto: ["El archivo no es una imagen válida (jpg, png o webp)."] } };
+  }
   const netoCapturadoEn =
     combinarFechaHoraTicket(validated.data.fechaTicket, validated.data.horaTicket) ??
     new Date();
