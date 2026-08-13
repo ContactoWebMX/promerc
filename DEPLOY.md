@@ -142,6 +142,26 @@ están en el bundle de migración) — en su lugar:
   quizás no coincidan con el entorno de build de Docker.
 - Guarda y **Restart**.
 
+## 6. Cron Job de notificaciones por correo (una sola vez)
+
+Las notificaciones in-app se escriben al instante desde la propia app, pero
+el correo lo manda un cron aparte (`/api/cron/notificaciones`) — sin este
+paso, las notificaciones se acumulan en la base pero el correo nunca sale.
+
+En cPanel → **Cron Jobs**:
+
+- **Common Settings**: cada 1-2 minutos (ej. `*/2 * * * *`).
+- **Command**:
+  ```bash
+  curl -s -X POST -H "x-cron-secret: TU_CRON_SECRET" https://promerc.tu-dominio.com/api/cron/notificaciones
+  ```
+  con el mismo valor de `CRON_SECRET` que capturaste en "Setup Node.js App"
+  → Environment Variables (ver `.env.production.example`).
+
+Verificar que corre: revisa el log de cPanel de ese cron después de la
+primera ejecución, o consulta directo en `psql` cuántas filas de
+`NotificacionDestinatario` tienen `correoEnviadoEn` distinto de `NULL`.
+
 ## Después de cada actualización de código
 
 **Si solo cambió código de la app (sin tocar `prisma/schema.prisma`):**
