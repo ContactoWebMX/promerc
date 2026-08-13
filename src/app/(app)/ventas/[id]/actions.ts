@@ -16,6 +16,8 @@ import {
 } from "@/lib/validations/ventas";
 import type { Prisma } from "@/generated/prisma/client";
 import { crearOrdenVenta } from "@/lib/netsuite";
+import { crearNotificacion } from "@/lib/notificaciones-server";
+import type { ResumenVentaCerrada, ResumenVentaRequiereAprobacion } from "@/lib/notificaciones";
 
 export type VentaFormState =
   | { errors?: Record<string, string[]>; message?: string }
@@ -28,7 +30,7 @@ export async function reportarPesoVenta(
   const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const id = Number(formData.get("id"));
-  const venta = await prisma.venta.findUnique({ where: { id } });
+  const venta = await prisma.venta.findUnique({ where: { id }, include: { cliente: true } });
   if (!venta) return { message: "Venta no encontrada." };
   if (!canAccessUbicacion(usuario, venta.ubicacionId)) {
     return { message: "Venta no encontrada." };
@@ -113,6 +115,38 @@ export async function reportarPesoVenta(
   }
 
   await prisma.$transaction(operaciones);
+
+  if (excede) {
+    const resumen: ResumenVentaRequiereAprobacion = {
+      clienteNombre: venta.cliente.nombre,
+      pesoVendidoKg: Number(venta.pesoVendidoKg),
+      pesoReportadoClienteKg,
+      diferenciaKg,
+      umbralPct: umbral,
+    };
+    await crearNotificacion({
+      tipo: "VENTA_REQUIERE_APROBACION",
+      entidad: "Venta",
+      entidadId: id,
+      ubicacionId: venta.ubicacionId,
+      resumen,
+    });
+  } else {
+    const resumen: ResumenVentaCerrada = {
+      clienteNombre: venta.cliente.nombre,
+      pesoReportadoClienteKg,
+      precioUnitarioKg: Number(venta.precioUnitarioKg),
+      importeTotal,
+      diferenciaKg,
+    };
+    await crearNotificacion({
+      tipo: "VENTA_CERRADA",
+      entidad: "Venta",
+      entidadId: id,
+      ubicacionId: venta.ubicacionId,
+      resumen,
+    });
+  }
 
   revalidatePath(`/ventas/${id}`);
   revalidatePath("/ventas");
@@ -252,7 +286,7 @@ export async function aprobarExcepcionTolerancia(
   const usuario = await requireRole(["ADMIN", "SUPERVISOR"]);
 
   const id = Number(formData.get("id"));
-  const venta = await prisma.venta.findUnique({ where: { id } });
+  const venta = await prisma.venta.findUnique({ where: { id }, include: { cliente: true } });
   if (!venta) return { message: "Venta no encontrada." };
   if (venta.estado !== "PENDIENTE_APROBACION") {
     return { message: "Esta venta no tiene una excepción de tolerancia pendiente." };
@@ -285,6 +319,21 @@ export async function aprobarExcepcionTolerancia(
     detalleAnterior: { estado: "PENDIENTE_APROBACION" },
     detalleNuevo: { estado: "CERRADA" },
     motivo: validated.data.justificacion,
+  });
+
+  const resumen: ResumenVentaCerrada = {
+    clienteNombre: venta.cliente.nombre,
+    pesoReportadoClienteKg: Number(venta.pesoReportadoClienteKg ?? 0),
+    precioUnitarioKg: Number(venta.precioUnitarioKg),
+    importeTotal: Number(venta.importeTotal),
+    diferenciaKg: Number(venta.diferenciaKg),
+  };
+  await crearNotificacion({
+    tipo: "VENTA_CERRADA",
+    entidad: "Venta",
+    entidadId: id,
+    ubicacionId: venta.ubicacionId,
+    resumen,
   });
 
   revalidatePath(`/ventas/${id}`);
