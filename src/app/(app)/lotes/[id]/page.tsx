@@ -123,8 +123,8 @@ export default async function LoteDetailPage({
             hiddenId={lote.id}
             defaultValues={{ folio: lote.folio }}
             fields={[
-              { name: "folio", label: "Folio", required: true },
-              { name: "motivo", label: "Motivo del cambio", required: true },
+              { name: "folio", label: "Folio", required: true, uppercase: true },
+              { name: "motivo", label: "Motivo del cambio", required: true, uppercase: true },
             ]}
           />
         </div>

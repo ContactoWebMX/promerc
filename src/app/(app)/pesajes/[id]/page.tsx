@@ -240,6 +240,9 @@ export default async function PesajeDetailPage({
                   name="motivoAnulacion"
                   placeholder="Motivo"
                   required
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                  }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>
@@ -272,10 +275,10 @@ export default async function PesajeDetailPage({
                   observaciones: pesaje.observaciones ?? "",
                 }}
                 fields={[
-                  { name: "folioTicket", label: "Folio del ticket", required: true },
-                  { name: "idOperacionBascula", label: "ID de operación de báscula" },
-                  { name: "operadorNombre", label: "Operador", required: true },
-                  { name: "placas", label: "Placas", required: true },
+                  { name: "folioTicket", label: "Folio del ticket", required: true, uppercase: true },
+                  { name: "idOperacionBascula", label: "ID de operación de báscula", uppercase: true },
+                  { name: "operadorNombre", label: "Operador", required: true, uppercase: true },
+                  { name: "placas", label: "Placas", required: true, uppercase: true },
                   {
                     name: "taraKg",
                     label: "Tara (kg)",
@@ -295,7 +298,7 @@ export default async function PesajeDetailPage({
                             label: a.nombre,
                           })),
                         },
-                        { name: "clienteDestinoReferencia", label: "Destino" },
+                        { name: "clienteDestinoReferencia", label: "Destino", uppercase: true },
                       ]
                     : []),
                   ...(pesaje.estado === "COMPLETO"
@@ -307,11 +310,11 @@ export default async function PesajeDetailPage({
                           min: 0,
                           step: 0.01,
                         },
-                        { name: "pesadorNombre", label: "Pesador" },
-                        { name: "observaciones", label: "Observaciones" },
+                        { name: "pesadorNombre", label: "Pesador", uppercase: true },
+                        { name: "observaciones", label: "Observaciones", uppercase: true },
                       ]
                     : []),
-                  { name: "motivo", label: "Motivo de la corrección", required: true },
+                  { name: "motivo", label: "Motivo de la corrección", required: true, uppercase: true },
                 ]}
               />
             </ActionDialog>
@@ -334,6 +337,9 @@ export default async function PesajeDetailPage({
                   name="motivo"
                   placeholder="Motivo"
                   required
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                  }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>

@@ -58,10 +58,10 @@ export function CerrarPesajeForm({
       grossKgRef.current.value = String(datos.pesoKg);
     }
     if (datos.pesadorNombre && pesadorNombreRef.current) {
-      pesadorNombreRef.current.value = datos.pesadorNombre;
+      pesadorNombreRef.current.value = datos.pesadorNombre.toUpperCase();
     }
     if (datos.observaciones && observacionesRef.current) {
-      observacionesRef.current.value = datos.observaciones;
+      observacionesRef.current.value = datos.observaciones.toUpperCase();
     }
     if (datos.fecha && fechaTicketRef.current) fechaTicketRef.current.value = datos.fecha;
     if (datos.hora && horaTicketRef.current) horaTicketRef.current.value = datos.hora;
@@ -167,6 +167,7 @@ export function CerrarPesajeForm({
                 id="grossKg"
                 name="grossKg"
                 type="number"
+                inputMode="decimal"
                 min={0}
                 step={0.01}
                 required
@@ -187,6 +188,9 @@ export function CerrarPesajeForm({
                 name="pesadorNombre"
                 required
                 ref={pesadorNombreRef}
+                onInput={(e) => {
+                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                }}
                 className={inputClass}
               />
               {state?.errors?.pesadorNombre && (
@@ -203,6 +207,9 @@ export function CerrarPesajeForm({
               id="observaciones"
               name="observaciones"
               ref={observacionesRef}
+              onInput={(e) => {
+                e.currentTarget.value = e.currentTarget.value.toUpperCase();
+              }}
               className={inputClass}
             />
           </div>

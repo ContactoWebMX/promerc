@@ -161,7 +161,7 @@ export default async function CompraDetailPage({
                     min: 0,
                     step: 0.01,
                   },
-                  { name: "motivo", label: "Motivo de la corrección", required: true },
+                  { name: "motivo", label: "Motivo de la corrección", required: true, uppercase: true },
                 ]}
               />
             </ActionDialog>
@@ -185,7 +185,7 @@ export default async function CompraDetailPage({
                     action={anularCompra}
                     submitLabel="Anular compra"
                     hiddenId={compra.id}
-                    fields={[{ name: "motivo", label: "Motivo de la anulación", required: true }]}
+                    fields={[{ name: "motivo", label: "Motivo de la anulación", required: true, uppercase: true }]}
                   />
                 </ActionDialog>
               )}
@@ -200,7 +200,7 @@ export default async function CompraDetailPage({
                   action={eliminarCompra}
                   submitLabel="Eliminar compra"
                   hiddenId={compra.id}
-                  fields={[{ name: "motivo", label: "Motivo de la eliminación", required: true }]}
+                  fields={[{ name: "motivo", label: "Motivo de la eliminación", required: true, uppercase: true }]}
                 />
               </ActionDialog>
             </>

@@ -76,6 +76,7 @@ export function ReportarPesoForm({
             id="pesoReportadoClienteKg"
             name="pesoReportadoClienteKg"
             type="number"
+            inputMode="decimal"
             min={0}
             step={0.01}
             required
@@ -115,6 +116,9 @@ export function ReportarPesoForm({
             list="motivos-diferencia"
             placeholder="ej. material mojado"
             required={requiereEvidencia}
+            onInput={(e) => {
+              e.currentTarget.value = e.currentTarget.value.toUpperCase();
+            }}
             className={inputClass}
           />
           <datalist id="motivos-diferencia">

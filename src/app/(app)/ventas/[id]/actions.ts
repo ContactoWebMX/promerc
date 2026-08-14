@@ -245,7 +245,7 @@ export async function eliminarVenta(formData: FormData) {
   const usuario = await requireRole(["ADMIN"]);
 
   const id = Number(formData.get("id"));
-  const motivo = String(formData.get("motivo") ?? "").trim();
+  const motivo = String(formData.get("motivo") ?? "").trim().toUpperCase();
   if (!motivo) return;
 
   const venta = await prisma.venta.findUnique({

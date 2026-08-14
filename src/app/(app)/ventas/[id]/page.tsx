@@ -219,7 +219,7 @@ export default async function VentaDetailPage({
               hiddenId={venta.id}
               confirmMessage="¿Aprobar la excepción de tolerancia y cerrar esta venta? Queda registrado en la bitácora de auditoría."
               fields={[
-                { name: "justificacion", label: "Justificación", required: true },
+                { name: "justificacion", label: "Justificación", required: true, uppercase: true },
               ]}
             />
           </div>
@@ -304,10 +304,11 @@ export default async function VentaDetailPage({
                       {
                         name: "motivoDiferencia",
                         label: "Motivo de la diferencia",
+                        uppercase: true,
                       },
                     ]
                   : []),
-                { name: "motivo", label: "Motivo de la corrección", required: true },
+                { name: "motivo", label: "Motivo de la corrección", required: true, uppercase: true },
               ]}
             />
           </ActionDialog>
@@ -329,6 +330,9 @@ export default async function VentaDetailPage({
                   name="motivo"
                   placeholder="Motivo"
                   required
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                  }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>

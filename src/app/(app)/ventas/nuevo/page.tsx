@@ -71,8 +71,8 @@ export default async function NuevaVentaPage() {
               min: 0,
               step: 0.01,
             },
-            { name: "operadorNombre", label: "Operador del transporte (opcional)" },
-            { name: "placas", label: "Placas (opcional)" },
+            { name: "operadorNombre", label: "Operador del transporte (opcional)", uppercase: true },
+            { name: "placas", label: "Placas (opcional)", uppercase: true },
           ]}
         />
       )}

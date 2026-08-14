@@ -82,6 +82,13 @@ export function FotoInput({
   const [comprimiendo, setComprimiendo] = useState(false);
 
   async function recibir(file: File | null) {
+    // onFileChange recibe el archivo ORIGINAL, sin comprimir — quien lo usa
+    // hoy es la lectura con IA del ticket (leerTicketConIA/leerTicketOffline),
+    // y comprimir antes de mandarlo pierde nitidez en números impresos o
+    // escritos a mano, justo lo que hace fallar esa lectura. La compresión
+    // solo afecta al archivo que de verdad se sube al guardar el formulario.
+    onFileChange?.(file);
+
     let final = file;
     if (file) {
       setComprimiendo(true);
@@ -94,7 +101,6 @@ export function FotoInput({
       realRef.current.files = dt.files;
     }
     setFileName(final?.name ?? null);
-    onFileChange?.(final);
   }
 
   return (

@@ -66,6 +66,9 @@ export function RegistrarSalidaForm({
               <input
                 id="clienteDestinoReferencia"
                 name="clienteDestinoReferencia"
+                onInput={(e) => {
+                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                }}
                 className={inputClass}
               />
             </div>
@@ -83,6 +86,7 @@ export function RegistrarSalidaForm({
                     id={`paca-${u.id}`}
                     name={`paca-${u.id}`}
                     type="number"
+                    inputMode="numeric"
                     min={0}
                     defaultValue={0}
                     className={`w-24 ${inputClass}`}
@@ -102,6 +106,9 @@ export function RegistrarSalidaForm({
               id="firmaSalidaNombre"
               name="firmaSalidaNombre"
               required
+              onInput={(e) => {
+                e.currentTarget.value = e.currentTarget.value.toUpperCase();
+              }}
               className={inputClass}
             />
             {state?.errors?.firmaSalidaNombre && (

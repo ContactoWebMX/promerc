@@ -110,7 +110,7 @@ export async function leerTicketBascula(
             },
             {
               type: "text",
-              text: "Esta es la foto de un ticket de báscula de una recolección de material de desperdicio (cartón, etc). Puede ser el ticket de la tara (camión vacío) o el del peso cargado — extrae lo que encuentres: el folio o número de ticket impreso, un ID de operación/báscula si aparece uno distinto del folio, la fecha (YYYY-MM-DD) y hora (HH:mm) impresas, el peso en kg que se muestra (escrito a mano o impreso — el único peso relevante de este ticket), el nombre de quien pesó (pesador/operador de báscula), y cualquier observación relevante escrita en el ticket. Si un dato no aparece o no es legible, usa null para ese campo.",
+              text: "Esta es la foto de un ticket de báscula de una recolección de material de desperdicio (cartón, etc). Puede ser el ticket de la tara (camión vacío) o el del peso cargado — extrae lo que encuentres: el folio o número de ticket impreso, un ID de operación/báscula si aparece uno distinto del folio, la fecha (YYYY-MM-DD) y hora (HH:mm) impresas, el peso en kg que se muestra (escrito a mano o impreso — el único peso relevante de este ticket), el nombre de quien pesó (pesador/operador de báscula), y cualquier observación relevante escrita en el ticket. Es preferible dejar un campo en null a adivinar: úsalo cada vez que el dato no aparezca, esté tachado/incompleto, o no puedas leerlo con certeza — un valor equivocado es peor que un campo vacío, porque alguien lo va a dar por bueno sin revisarlo. No repitas ni confundas un campo con otro (ej. no pongas el folio en idOperacionBascula ni viceversa si no estás seguro de cuál es cuál).",
             },
           ],
         },

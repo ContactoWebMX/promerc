@@ -32,7 +32,15 @@ type FieldConfig = {
   min?: number;
   step?: number;
   datalist?: string[];
+  // Fuerza mayúsculas mientras se escribe — para campos tipo identificador
+  // (folios, placas, nombres) en formularios operativos. No aplica a
+  // catálogos (los administra un ADMIN, sin esta restricción).
+  uppercase?: boolean;
 };
+
+function alMayusculas(e: React.FormEvent<HTMLInputElement>) {
+  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+}
 
 // Umbral a partir del cual el formulario deja de ser una sola columna
 // angosta: catálogos cortos (2-3 campos) se ven bien en max-w-sm, pero
@@ -147,8 +155,10 @@ export function CatalogForm({
                 required={f.required}
                 min={f.min}
                 step={f.step}
+                inputMode={f.type === "number" ? "decimal" : undefined}
                 list={f.datalist ? fieldId(`${f.name}-list`) : undefined}
                 defaultValue={defaultValues?.[f.name]}
+                onInput={f.uppercase ? alMayusculas : undefined}
                 className={inputClass}
               />
               {f.datalist && (

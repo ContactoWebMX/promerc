@@ -58,10 +58,10 @@ export function NuevoPesajeForm({
     }
     setOcrStatus("idle");
     if (datos.folioTicket && folioTicketRef.current) {
-      folioTicketRef.current.value = datos.folioTicket;
+      folioTicketRef.current.value = datos.folioTicket.toUpperCase();
     }
     if (datos.idOperacionBascula && idOperacionRef.current) {
-      idOperacionRef.current.value = datos.idOperacionBascula;
+      idOperacionRef.current.value = datos.idOperacionBascula.toUpperCase();
     }
     if (datos.pesoKg != null && taraKgRef.current) {
       taraKgRef.current.value = String(datos.pesoKg);
@@ -163,6 +163,9 @@ export function NuevoPesajeForm({
                 name="folioTicket"
                 required
                 ref={folioTicketRef}
+                onInput={(e) => {
+                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                }}
                 className={inputClass}
               />
               {state?.errors?.folioTicket && (
@@ -178,6 +181,9 @@ export function NuevoPesajeForm({
                 id="idOperacionBascula"
                 name="idOperacionBascula"
                 ref={idOperacionRef}
+                onInput={(e) => {
+                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                }}
                 className={inputClass}
               />
             </div>
@@ -238,7 +244,7 @@ export function NuevoPesajeForm({
                 required
                 list="operadorNombre-list"
                 value={operadorNombre}
-                onChange={(e) => setOperadorNombre(e.target.value)}
+                onChange={(e) => setOperadorNombre(e.target.value.toUpperCase())}
                 className={inputClass}
               />
               <datalist id="operadorNombre-list">
@@ -266,7 +272,7 @@ export function NuevoPesajeForm({
                 required
                 list="placas-list"
                 value={placas}
-                onChange={(e) => setPlacas(e.target.value)}
+                onChange={(e) => setPlacas(e.target.value.toUpperCase())}
                 className={inputClass}
               />
               <datalist id="placas-list">
@@ -295,6 +301,7 @@ export function NuevoPesajeForm({
               id="taraKg"
               name="taraKg"
               type="number"
+              inputMode="decimal"
               min={0}
               step={0.01}
               required
