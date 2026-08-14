@@ -154,10 +154,14 @@ En cPanel → **Cron Jobs**:
 - **Common Settings**: cada 1-2 minutos (ej. `*/2 * * * *`).
 - **Command**:
   ```bash
-  curl -s -X POST -H "x-cron-secret: TU_CRON_SECRET" https://promerc.tu-dominio.com/api/cron/notificaciones
+  curl -s -X POST -A "Mozilla/5.0" -H "x-cron-secret: TU_CRON_SECRET" https://promerc.tu-dominio.com/api/cron/notificaciones
   ```
   con el mismo valor de `CRON_SECRET` que capturaste en "Setup Node.js App"
-  → Environment Variables (ver `.env.production.example`).
+  → Environment Variables (ver `.env.production.example`). **El `-A
+  "Mozilla/5.0"` es obligatorio** — sin él, el ModSecurity de este hosting
+  responde `406 Not Acceptable` antes de que la petición llegue a la app
+  (bloquea el User-Agent por default de `curl` por parecer tráfico de
+  bot/scanner).
 
 Verificar que corre: revisa el log de cPanel de ese cron después de la
 primera ejecución, o consulta directo en `psql` cuántas filas de
