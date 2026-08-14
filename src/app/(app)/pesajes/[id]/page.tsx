@@ -240,9 +240,7 @@ export default async function PesajeDetailPage({
                   name="motivoAnulacion"
                   placeholder="Motivo"
                   required
-                  onInput={(e) => {
-                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
-                  }}
+                  style={{ textTransform: "uppercase" }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>
@@ -337,9 +335,7 @@ export default async function PesajeDetailPage({
                   name="motivo"
                   placeholder="Motivo"
                   required
-                  onInput={(e) => {
-                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
-                  }}
+                  style={{ textTransform: "uppercase" }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>

@@ -330,9 +330,7 @@ export default async function VentaDetailPage({
                   name="motivo"
                   placeholder="Motivo"
                   required
-                  onInput={(e) => {
-                    e.currentTarget.value = e.currentTarget.value.toUpperCase();
-                  }}
+                  style={{ textTransform: "uppercase" }}
                   className={inputClass}
                 />
                 <button type="submit" className={buttonClass("danger")}>
