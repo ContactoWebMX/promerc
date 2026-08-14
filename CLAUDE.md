@@ -54,6 +54,7 @@ npx prisma db seed                     # corre prisma/seed.ts (ubicación, admin
 
 - **Nunca usar `.bind()` en una Server Action que se pasa a `useActionState`** — en esta versión de Next (16.2.10, Turbopack dev) provoca un loop infinito real (memoria/CPU disparados) al reinvocar la misma acción una segunda vez en el proceso. Pasar cualquier dato adicional (ej. un token o id) como campo oculto del formulario en su lugar — ver `reset-form.tsx` o `cerrar-pesaje-form.tsx`.
 - **Campos opcionales de formulario**: usar `.nullish()` en Zod, no `.optional()` — `formData.get()` devuelve `null` (no `undefined`) cuando un campo está ausente, y `.optional()` de Zod v4 no acepta `null`.
+- **Nunca pasar una función (`onInput`, `onChange`, etc.) como prop a un elemento nativo dentro de un archivo sin `"use client"`** — `page.tsx` de una ruta es Server Component por default; React no puede serializar funciones a través de esa frontera y truena en tiempo de ejecución con "Event handlers cannot be passed to Client Component props" (pasó con formularios sueltos de anular/eliminar en `pesajes/[id]/page.tsx` y `ventas/[id]/page.tsx`). Si hace falta interactividad en un campo suelto de un Server Component, usar solo props serializables (`style`, `defaultValue`, etc.) o mover ese fragmento a su propio componente `"use client"`.
 - Fuera de lo anterior, no hay guía genérica de "buenas prácticas" que agregar aquí — seguir el patrón del módulo más parecido ya construido.
 
 ## Importante: esta no es la versión de Next.js que conoces
